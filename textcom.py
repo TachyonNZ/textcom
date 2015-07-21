@@ -13,11 +13,14 @@ sectoidfName = ["Glip","Gleep","Glup","Glorp","Gloop","Glop","Glump","Glerp","Gl
 sectoidlName = ["Glop","Glarp","Glupple","Glorple","Gloopley","Glopperson","Glep","Glommery"]
 thinfName = ["T.","P.","H.","Z.","K.","A.","F.","X.","P.","L.","W.","S"]
 thinlName = ["Hinman","Alium","Van Doom","Lmao","Notanalien","Anderson","Smith","Human","Clark","Warzonager"]
-mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy"]
+floaterfName = ["Dirk","Ferdinand","Frederick","Algernon","Angus","King","Cornelius","Francis","Christopher","Gustav"]
+floaterlName = ["Meyer","Meer","Peters","Prince","Vos","Wolf","Schwarz","Frank","Miller","Anderssen"]
+
+mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy","Jimmy"]
 mutonlName = ["Von Mooter","The Muton","Hugan","Jankins","Jefferson"]
 #Aliem names
 
-aranks = {0:"Peon",1:"R1",2:"R2",3:"R3",4:"Commander"}
+aranks = {0:"Peon",1:"Soldier",2:"Trooper",3:"Officer",4:"Commander",5:"Overseer",6:"Supreme Commander",7:"Uber",8:"Trancendant"}
 #alien ranks
 
 retort = ("Suck on this!","Eat lead!","Pick on someone your own size!","Take this!","Welcome to Earth!")
@@ -25,8 +28,11 @@ retort = ("Suck on this!","Eat lead!","Pick on someone your own size!","Take thi
 
 priwep = {0:"Ballistic Rifle",1:"Ballistic Carbine"}
 secwep = {0:"Ballistic Pistol",1:"Autopistol"}
-items = {0:"Frag Grenade",1:"Nano Serum",2:"Scope",999:"None"}
+items = {0:"Frag Grenade",1:"Nano Serum",2:"Scope",3:"Alien Grenade",999:"None"}
+drops = {0:"Frag Grenade",1:"Nano Serum",2:"Alien Grenade"}
 #human weapons + items
+
+
 
 apriwep = {0:"Light Plasma Rifle",1:"Plasma Rifle"}
 asecwep = {0:"Plasma Pistol",1:"Alloy Pistol"}
@@ -171,7 +177,7 @@ class Alien():
         self.secondary = 0
         self.dmgp = 4
         self.dmgs = 3
-        self.item1 = rd.randrange(0,2)
+        self.item1 = rd.randrange(0,3)
         self.armour = "BDY" #body armour
         self.alive = 1
     def thinman(self):
@@ -180,7 +186,7 @@ class Alien():
         self.fName = rd.choice(thinfName)
         self.aID = len(pod)
         self.lName = rd.choice(thinlName)
-        self.rank = round(rd.randrange(0+round(roomNo/30),2))
+        self.rank = round(rd.randrange(0,3))
         self.HP = 3+self.rank
         self.aim = rd.randrange(60,80)+self.rank
         self.mobility = rd.randrange(12,15)+self.rank
@@ -188,9 +194,46 @@ class Alien():
         self.secondary = 0
         self.dmgp = 4
         self.dmgs = 3
-        self.item1 = rd.randrange(0,2)
+        self.item1 = rd.randrange(0,3)
         self.armour = "BDY" #body armour
-        self.alive = 1        
+        self.alive = 1
+    def floater(self):
+        self.ammo = 1
+        self.species = "Floater"
+        self.fName = rd.choice(floaterfName)
+        self.aID = len(pod)
+        self.lName = rd.choice(floaterlName)
+        self.rank = round(rd.randrange(0+round(roomNo/10),3))
+        self.item1 = rd.randrange(0,3)
+        self.HP = 4+self.rank
+        self.aim = rd.randrange(50,70)+self.rank
+        self.mobility = rd.randrange(12,15)+self.rank
+        self.weapon = 0
+        self.secondary = 0
+        self.dmgp = 4
+        self.dmgs = 3
+        self.armour = "BDY" #body armour
+        self.alive = 1
+    def muton(self):
+        self.ammo = 1
+        self.species = "Muton"
+        self.fName = rd.choice(mutonfName)
+        self.aID = len(pod)
+        self.lName = rd.choice(mutonlName)
+        self.rank = round(rd.randrange(0+round(roomNo/10),3))
+        self.item1 = rd.randrange(0,3)
+        self.HP = 8+self.rank
+        self.aim = rd.randrange(50,60)+self.rank
+        self.mobility = rd.randrange(10,12)+self.rank
+        self.weapon = 1
+        self.secondary = 0
+        self.dmgp = 6
+        self.dmgs = 4
+        self.armour = "BDY" #body armour
+        self.alive = 1
+    def refresh(self):
+        self.HP += self.rank*round(rd.random()*2)
+        self.aim  +=  self.rank*round(rd.random()*2)
         
     def summon(self):
         p(0,aranks[self.rank]+" "+self.fName+" "+self.lName+" - "+str(self.HP)+" HP"+" - "+str(self.aim)+" Aim")
@@ -306,7 +349,7 @@ def playerTurn():
                 p(0,"*Dakkadakkadakka*")
                 chance = (soldier.aim)-(sel.cover)-(soldier.aimpenalty)
                 if 2 in soldier.item: #scope
-                    chance += 10
+                    chance += 0
                 if soldier.weapon == 1: #carbine
                     chance += 10
                 if rd.randrange(0,100) <= chance:
@@ -342,6 +385,26 @@ def playerTurn():
                         i = 0 #reset the loop
                 #the grenade only affects some of the aliens in the room, but is guaranteed to hit at least 1
                 #it's not a bug, it's a feature
+            elif sel == "AlienFrag":
+                AP -= 15
+                p(0,"**BLAM!**")
+                #grenade, obviously
+                soldier.item.pop(soldier.item.index(3))
+                affected = room[roomNo]
+                for i in range(len(affected)+1):
+                    try:
+                        alium = affected[i]
+                        alium.HP -= 4
+                        alium.cover = 0
+                        fragments += getLoot(alium)[0]
+                        elerium += getLoot(alium)[1]
+                        meld += getLoot(alium)[2]
+                        alloy += getLoot(alium)[3]
+                        checkDead(alium)
+                    except ( IndexError ):
+                        i = 0 #reset the loop
+                #the grenade only affects some of the aliens in the room, but is guaranteed to hit at least 1
+                #it's not a bug, it's a feature
     if AP <= 0:
         p(0,soldier.deets()+" is out of AP!")
     #ends turn by default
@@ -355,7 +418,7 @@ def checkForOverwatch(who,getalium):
             if alium.overwatch == 1:
                 p(0,alium.name()+" reacts!")
                 if alium.item1 == 2:
-                    chance += 10
+                    cthplayer += 10
                 if rd.randrange(0,100) < cthplayer:
                     dmg = alium.dmgp + rd.randrange(-2, 1)
                     p(0,str(dmg)+" damage!")
@@ -426,7 +489,7 @@ def alienTurn():
         if alium.alive != 0:
             cthplayer = alium.aim - soldier.cover
             if alium.item1 == 2: #focusing lens
-                chance += 10
+                cthplayer += 20
             
             if alium.cover < 20:
                 if rd.randrange(0,100) < 80:
@@ -447,13 +510,13 @@ def alienTurn():
                     #randomly moves to different cover sometimes
                     
                 else:
-                    if rd.randrange(0,100) < 30:
+                    if rd.randrange(0,100) < 20:
                         ow(alium)
                     else:
                         fire(alium,cthplayer)
                         
             else:
-                if cthplayer > 10 + rd.randrange(0,40):
+                if cthplayer > 50 + rd.randrange(0,40):
                     fire(alium,cthplayer)
                 else:
                     ow(alium)
@@ -571,6 +634,10 @@ def displayOptions():
         if AP > 9:
             invac.append("Frag")
             p(len(invac),"(2dmg)(10AP) Throw Frag Grenade")
+    if 3 in soldier.item:
+        if AP > 14:
+            invac.append("AlienFrag")
+            p(len(invac),"(4dmg)(15AP) Throw Alien Grenade")
     if 1 in soldier.item:
         if AP > 9:
             invac.append("Meds")
@@ -589,14 +656,53 @@ def displayOptions():
 
 
 def drop():
-    itemdrop = rd.randrange(0,2)
+    itemdrop = rd.randrange(0,3)
     if rd.randrange(1,100) < 5:
-        p(spk,"Recovered a "+items[itemdrop]+"!")
+        p(spk,"Recovered a "+drops[itemdrop]+"!")
         soldier.item.append(itemdrop)
 
 
 def craft(item):
     pass
+
+def mutate(i):
+    if i <= 3:
+        pass
+    elif i > 3 and i < 10:
+        y = options[rd.randrange(0,2)]
+        if y == "Thinman":
+            x.thinman()
+        x.rank += 1
+        x.refresh()
+    elif i > 9 and i < 15:
+        y = rd.choice(options)
+        if y == "Thinman":
+            x.thinman()
+        if y == "Floater":
+            x.floater()
+        if y == "Muton":
+            x.muton()
+            x.rank -= 2
+        x.rank += 3
+        x.refresh()
+    elif i > 14:
+        y = options[rd.randrange(1,4)]
+        if y == "Thinman":
+            x.thinman()
+        if y == "Floater":
+            x.floater()
+        if y == "Muton":
+            x.muton()
+        x.rank += 4
+        x.refresh()
+    elif i > 16:
+        y = options[rd.randrange(2,4)]
+        if y == "Muton":
+            x.muton()
+        if y == "Floater":
+            x.floater()
+        x.rank += 4
+        x.refresh()
 
 p(0,"Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
 p(0,"Choose a soldier from the 3 below to go on the mission.")
@@ -622,20 +728,47 @@ soldier = barracks[int(soldier)-1]
 spk = soldier.fName + " " + soldier.lName
 p(spk, "Ready for duty, Commander!")
 room = [[]]
-for i in range(11):
+options = ["Sectoid","Thinman","Floater","Muton"]
+
+for i in range(30):
+    pod = []
     for j in range(3+rd.randrange(-2,2)):
         x = Alien()
         pod.append(x)
     room.append(pod)
-    pod = []
-    if i > 3:
-        for j in range(3+rd.randrange(-2,2)):
-            x = Alien()
-            if rd.randrange(0,100) < 50:
-                x.thinman()
-            pod.append(x)
-        room.append(pod)
-        pod = []
+    for j in range(len(room[i])):
+        if i < 10:
+            x = rd.choice(room[i])
+            mutate(i)
+        elif i < 15:
+            x = rd.choice(room[i])
+            mutate(i)
+            x = rd.choice(room[i])
+            mutate(i)
+        elif i < 20:
+            x = rd.choice(room[i])
+            mutate(i)
+            x = rd.choice(room[i])
+            mutate(i)
+            x = rd.choice(room[i])
+            mutate(i)
+        else:
+            x = rd.choice(room[i])
+            mutate(i)
+            x = rd.choice(room[i])
+            mutate(i)
+            x = rd.choice(room[i])
+            mutate(i)
+            
+room[30] = []
+x = Alien()
+x.muton()
+x.rank = 8
+x.refresh()
+x.HP = 20
+
+room.append([])
+room[31] = []
 #generates the pods in each room
     
 
@@ -649,9 +782,9 @@ while soldier.alive == 1:
         playerTurn()
         if soldier.alive == 1:
             alienTurn()
-    except ( ValueError or IndexError):
+    except ( ValueError or IndexError ):
         pass
-    if roomNo == 11:
-        print("You win!")
+    if roomNo == 31:
+        print("You have won the game!")
         break
 quit
