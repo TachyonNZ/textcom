@@ -108,6 +108,7 @@ class Soldier():
     overwatch = 0
     XP = 0
     alive = 1
+    aimpenalty = 0
     def __init__(self):
         self.fName = rd.choice(fnm)
         self.sID = len(barracks)
@@ -293,6 +294,7 @@ def playerTurn():
                 soldier.item.pop(soldier.item.index(1))
                 #heals soldier but consumes the item
             if sel == "Hunker Down":
+                soldier.overwatch = 0
                 soldier.cover+=20
                 p(spk,"Taking cover!")
                 AP = 0
@@ -301,7 +303,7 @@ def playerTurn():
                 AP -= 6
                 p(spk,rd.choice(retort))
                 p(0,"*Dakkadakkadakka*")
-                chance = (soldier.aim)-(sel.cover)
+                chance = (soldier.aim)-(sel.cover)-(soldier.aimpenalty)
                 if 2 in soldier.item: #scope
                     chance += 10
                 if soldier.weapon == 1: #carbine
