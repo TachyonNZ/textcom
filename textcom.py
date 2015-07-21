@@ -14,7 +14,7 @@ sectoidlName = ["Glop","Glarp","Glupple","Glorple","Gloopley","Glopperson","Glep
 thinfName = ["T.","P.","H.","Z.","K.","A.","F.","X.","P.","L.","W.","S"]
 thinlName = ["Hinman","Alium","Van Doom","Lmao","Notanalien","Anderson","Smith","Human","Clark","Warzonager"]
 floaterfName = ["Dirk","Ferdinand","Frederick","Algernon","Angus","King","Cornelius","Francis","Christopher","Gustav"]
-floaterlName = ["Meyer","Meer","Peters","Prince","Vos","Wolf","Schwarz","Frank","Miller","Anderssen"]
+floaterlName = ["Meyer","Mleadeer","Peters","Prince","Vos","Wolf","Schwarz","Frank","Miller","Anderssen"]
 
 mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy","Jimmy"]
 mutonlName = ["Von Mooter","The Muton","Hugan","Jankins","Jefferson"]
@@ -23,13 +23,13 @@ mutonlName = ["Von Mooter","The Muton","Hugan","Jankins","Jefferson"]
 aranks = {0:"Peon",1:"Soldier",2:"Trooper",3:"Officer",4:"Commander",5:"Overseer",6:"Supreme Commander",7:"Uber",8:"Trancendant"}
 #alien ranks
 
-retort = ("Suck on this!","Eat lead!","Pick on someone your own size!","Take this!","Welcome to Earth!")
+retort = ("Suck on this!","Eat this!","Pick on someone your own size!","Take this!","Welcome to Earth!")
 #when a soldier shoots at an alien
 
-priwep = {0:"Ballistic Rifle",1:"Ballistic Carbine"}
+priwep = {0:"Ballistic Rifle",1:"Ballistic Carbine",2:"Light Plasma Rifle",3:"Plasma Rifle"}
 secwep = {0:"Ballistic Pistol",1:"Autopistol"}
 items = {0:"Frag Grenade",1:"Nano Serum",2:"Scope",3:"Alien Grenade",999:"None"}
-drops = {0:"Frag Grenade",1:"Nano Serum",2:"Alien Grenade"}
+drops = {0:"Frag Grenade",1:"Nano Serum",2:"Alien Grenade",3:"Light Plasma Rifle",4:"Plasma Rifle"}
 #human weapons + items
 
 
@@ -139,8 +139,15 @@ class Soldier():
     def deets(self):
         return(self.rank+" "+self.lName)
     #randomisation of the starting rookies
-        
-        
+    def updateWep(self):
+        if soldier.weapon == 2:
+            self.dmgp = 5
+            self.ammo = 4
+        if soldier.weapon == 3:
+            self.dmgp = 7
+            self.ammo = 5
+            
+            
 #we define the aliens here. they are initialised as sectoids but this can be changed with the definitions, such
 #as thinman(), to convert the alien to a thinman
 class Alien():
@@ -346,11 +353,14 @@ def playerTurn():
             if sel in room[roomNo]: #if sel is an Alien() pointer
                 AP -= 6
                 p(spk,rd.choice(retort))
-                p(0,"*Dakkadakkadakka*")
+                if soldier.weapon <= 1:
+                    p(0,"*Dakkadakkadakka*")
+                else:
+                    p(0,"*Whap-whap-whap*")
                 chance = (soldier.aim)-(sel.cover)-(soldier.aimpenalty)
                 if 2 in soldier.item: #scope
                     chance += 0
-                if soldier.weapon == 1: #carbine
+                if soldier.weapon == 1 or soldier.weapon == 2: #carbine
                     chance += 10
                 if rd.randrange(0,100) <= chance:
                     damage = soldier.dmgp+rd.randrange(-1,2)
@@ -486,7 +496,7 @@ def alienTurn():
         except ( Exception ):
             i = 0
         #because something may have happened that causes an index error
-        if alium.alive != 0:
+        if alium.alive != 0 and soldier.alive == 1:
             cthplayer = alium.aim - soldier.cover
             if alium.item1 == 2: #focusing lens
                 cthplayer += 20
@@ -578,6 +588,18 @@ def checkXP():
         drop()
         drop()
         p(0,"LEVEL UP! "+soldier.deets())
+    elif soldier.XP >= 1500 and not soldier.rank == "Captain" and soldier.XP < 2000:
+        soldier.rank = "Captain"
+        soldier.HP += 2
+        soldier.aim += 1
+        drop()
+        drop()
+        drop()
+        drop()
+        p(0,"LEVEL UP! "+soldier.deets())
+
+
+        
     #add more and also alien items...?
         
 def getLoot(alium):
@@ -614,6 +636,10 @@ def displayOptions():
                 saywep = "(~3dmg)(6AP) Fire Ballistic Rifle"
             elif soldier.weapon == 1: #if we have the carbine
                 saywep = "(~2dmg)(6AP) Fire Ballistic Carbine"
+            elif soldier.weapon == 2:
+                saywep = "(~5dmg)(6AP) Fire Light Plasma Rifle"
+            elif soldier.weapon == 3:
+                saywep = "(~6dmg)(6AP) Fire Plasma Rifle"
             for i in range(len(room[roomNo])):
                 alium = room[roomNo][i]
                 chance = (soldier.aim)-(alium.cover)
@@ -622,7 +648,7 @@ def displayOptions():
                 if 1 in soldier.item:
                     chance += 10
                 invac.append(alium)
-                p(len(invac),saywep+" "+alium.deets(chance))
+                p(len(invac),saywep+" : "+alium.deets(chance))
                 #displays a list of valid targets
             invac.append("Overwatch")
             p(len(invac),"Overwatch")
@@ -656,11 +682,15 @@ def displayOptions():
 
 
 def drop():
-    itemdrop = rd.randrange(0,3)
+    itemdrop = rd.randrange(0,5)
     if rd.randrange(1,100) < 5:
         p(spk,"Recovered a "+drops[itemdrop]+"!")
-        soldier.item.append(itemdrop)
-
+        if itemdrop == 3:
+            soldier.weapon = 2
+            soldier.updateWep()
+        if itemdrop == 4:
+            soldier.weapon = 3
+            soldier.updateWep()
 
 def craft(item):
     pass
