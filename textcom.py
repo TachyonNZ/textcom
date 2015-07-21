@@ -376,6 +376,8 @@ def checkForOverwatch(who,getalium):
                     checkDead(alium)
                 else:
                     p(spk," Shot failed to connect!")
+                soldier.ammo -= 1
+                soldier.overwatch = 0
 
 
 def alienTurn():
@@ -551,6 +553,8 @@ def displayOptions():
                 invac.append(alium)
                 p(len(invac),saywep+" "+alium.deets(chance))
                 #displays a list of valid targets
+            invac.append("Overwatch")
+            p(len(invac),"Overwatch")
     else:
         if AP > 7:
             invac.append("Reload")
@@ -565,8 +569,7 @@ def displayOptions():
             p(len(invac),"(+4HP)(10AP) Use Nano Serum")
             
     #other default actions which are almost always available
-    invac.append("Overwatch")
-    p(len(invac),"Overwatch")
+    
     if AP > 2:
         invac.append("Reposition")
         p(len(invac),"(3AP) Reposition")
