@@ -231,7 +231,7 @@ def playerTurn():
     global meld
     global alloy
     AP = soldier.mobility
-    while AP > 0: #while the player has spare action points left
+    while AP > 0 and soldier.alive == 1: #while the player has spare action points left
         p(0,"HP - "+str(soldier.HP))
         p(0,"AP - "+str(AP))
         #displays stats
@@ -295,7 +295,8 @@ def playerTurn():
                 #heals soldier but consumes the item
             if sel == "Hunker Down":
                 soldier.overwatch = 0
-                soldier.cover+=20
+                if soldier.cover == 20 or soldier.cover == 40:
+                    soldier.cover+=20
                 p(spk,"Taking cover!")
                 AP = 0
                 #provides extra cover to soldier
@@ -341,7 +342,8 @@ def playerTurn():
                         i = 0 #reset the loop
                 #the grenade only affects some of the aliens in the room, but is guaranteed to hit at least 1
                 #it's not a bug, it's a feature
-    p(0,soldier.deets()+" is out of AP!")
+    if AP <= 0:
+        p(0,soldier.deets()+" is out of AP!")
     #ends turn by default
 
 
@@ -362,6 +364,7 @@ def checkForOverwatch(who,getalium):
                     #did it kill the player?
                 else:
                     p(0," Missed!")
+                alium.overwatch = 0
     else: #if a soldier is shooting at an alien
         alium = getalium
         cth = soldier.aim - alium.cover + 10
@@ -379,6 +382,39 @@ def checkForOverwatch(who,getalium):
                 soldier.ammo -= 1
                 soldier.overwatch = 0
 
+def fire(alium,cthplayer):
+    p(0,alium.name()+" fires at "+soldier.deets()+"("+str(cthplayer)+"%)")
+    if rd.randrange(0,100) < cthplayer:
+        dmg = alium.dmgp + rd.randrange(-2, 1)
+        p(0,str(dmg)+" damage!")
+        soldier.HP -= dmg
+        checkPlayerDead()
+        #did you kill the player, alien?
+    else:
+        p(0,"Missed!")
+
+def nade(alium):
+    p(0,alium.name()+" uses Alien Grenade!")
+    alium.item1 = 999
+    #sets the aliens item to 'none', no more grenades for you
+    p(0,"3 damage!")
+    soldier.HP -= 3
+    checkPlayerDead()
+                
+
+def ow(alium):
+    p(0,alium.name()+" went on overwatch!")
+    alium.overwatch = 1
+
+
+def move(alium,cover):
+    if cover == 40:
+        p(0,alium.name()+" runs to Full cover!") #if an alien has no cover, it will run to full cover. same goes if it's flanked
+    elif cover == 20:
+        p(0,alium.name()+" runs to Half cover!")
+    checkForOverwatch("Soldier",alium)
+    alium.cover = cover
+
 
 def alienTurn():
     for i in range(len(room[roomNo])):
@@ -387,77 +423,47 @@ def alienTurn():
         except ( Exception ):
             i = 0
         #because something may have happened that causes an index error
-        cthplayer = alium.aim - soldier.cover
-        if alium.item1 == 2: #focusing lens
-            chance += 10
-        
-        if alium.cover < 20:
-            p(0,alium.name()+" runs to Full cover!") #if an alien has no cover, it will run to full cover. same goes if it's flanked
-            checkForOverwatch("Soldier",alium)
-            alium.cover = 40
-            #we could change this to a probability
-        if alium.cover < 40:
-            if cthplayer > 30 + rd.randrange(0,40):
-                p(0,alium.name()+" fires at "+soldier.deets()+"("+str(cthplayer)+"%)")
-                if rd.randrange(0,100) < cthplayer:
-                    dmg = alium.dmgp + rd.randrange(-2, 1)
-                    p(0,str(dmg)+" damage!")
-                    soldier.HP -= dmg
-                    checkPlayerDead()
-                    #did you kill the player, alien?
+        if alium.alive != 0:
+            cthplayer = alium.aim - soldier.cover
+            if alium.item1 == 2: #focusing lens
+                chance += 10
+            
+            if alium.cover < 20:
+                if rd.randrange(0,100) < 80:
+                    move(alium,40)
                 else:
-                    p(0,"Missed!")
-            elif rd.randrange(0,100) < 20:
-                if alium.item1 == 0:
-                    p(0,alium.name()+" uses Alien Grenade!")
-                    alium.item1 = 999
-                    #sets the aliens item to 'none', no more grenades for you
-                    p(0,"3 damage!")
-                    soldier.HP -= 3
-                    checkPlayerDead()
-            elif rd.randrange(0,100) < 40:
-                if rd.randrange(0,100) < 50:
-                    p(0,alium.name()+" runs to Full cover!")
-                    checkForOverwatch("Soldier",alium)
-                    alium.cover = 40
-                else:
-                    p(0,alium.name()+" runs to Half cover!")
-                    checkForOverwatch("Soldier",alium)
-                    alium.cover = 20
-                #randomly moves to different cover sometimes
-                
-            else:
-                if rd.randrange(0,100) < 30:
-                    p(0,alium.name()+" went on overwatch!")
-                    alium.overwatch = 1
-                else:
-                    p(0,alium.name()+" fires at "+soldier.deets()+"("+str(cthplayer)+"%)")
-                    if rd.randrange(0,100) < cthplayer:
-                        dmg = alium.dmgp + rd.randrange(-2, 1)
-                        p(0,str(dmg)+" damage!")
-                        soldier.HP -= dmg
-                        checkPlayerDead()
+                    move(alium,20)
+            if alium.cover < 40:
+                if cthplayer > 30 + rd.randrange(0,40):
+                    fire(alium,cthplayer)
+                elif rd.randrange(0,100) < 20:
+                    if alium.item1 == 0:
+                        nade(alium)
+                elif rd.randrange(0,100) < 40:
+                    if rd.randrange(0,100) < 50:
+                        move(alium,40)
                     else:
-                        p(0,"Missed!")
+                        move(alium,20)
+                    #randomly moves to different cover sometimes
                     
-        else:
-            if cthplayer > 10 + rd.randrange(0,40):
-                p(0,alium.name()+" fires at "+soldier.deets()+"("+str(cthplayer)+"%)")
-                if rd.randrange(0,100) < cthplayer:
-                    dmg = alium.dmgp
-                    p(0,str(dmg)+" damage!")
-                    soldier.HP -= dmg
-                    checkPlayerDead()
                 else:
-                    print("Missed!")
+                    if rd.randrange(0,100) < 30:
+                        ow(alium)
+                    else:
+                        fire(alium,cthplayer)
+                        
             else:
-                p(0,alium.name()+" went on overwatch!")
-                alium.overwatch = 1
+                if cthplayer > 10 + rd.randrange(0,40):
+                    fire(alium,cthplayer)
+                else:
+                    ow(alium)
+
                     
 def checkDead(alium):
     if alium.HP <= 0:
         p(0,alium.name()+" died!")
         getLoot(alium)
+        drop()
         checkXP()
         room[roomNo].pop(room[roomNo].index(alium))
         #kills, loots and removes the alien from the game
@@ -478,34 +484,36 @@ def checkPlayerDead():
    
 #levels up
 def checkXP():
-    if soldier.XP >= 25 and not soldier.rank == "Squaddie" and soldier.XP < 50:
+    if soldier.XP >= 25 and not soldier.rank == "Squaddie" and soldier.XP < 100:
         soldier.rank = "Squaddie"
         soldier.HP += 1
         soldier.aim += 2
         soldier.mobility += 1
+        drop()
+        drop()
         p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 50 and not soldier.rank == "Corporal" and soldier.XP < 100:
+    elif soldier.XP >= 100 and not soldier.rank == "Corporal" and soldier.XP < 300:
         soldier.rank = "Corporal"
         soldier.HP += 1
         soldier.aim += 2
         soldier.mobility += 1
-        soldier.item.append(0)
-        p(spk,"Recovered a Frag Grenade!")
+        drop()
+        drop()
         p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 100 and not soldier.rank == "Sergeant" and soldier.XP < 200:
+    elif soldier.XP >= 300 and not soldier.rank == "Sergeant" and soldier.XP < 900:
         soldier.rank = "Sergeant"
         soldier.HP += 2
         soldier.aim += 1
         soldier.mobility += 1
-        soldier.item.append(1)
-        p(spk,"Recovered Nano Serum!")
+        drop()
+        drop()
         p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 200 and not soldier.rank == "Sergeant" and soldier.XP < 400:
-        soldier.rank = "Liutenant"
+    elif soldier.XP >= 900 and not soldier.rank == "Lieutenant" and soldier.XP < 1500:
+        soldier.rank = "Lieutenant"
         soldier.HP += 1
         soldier.aim += 1
-        soldier.item.append(0)
-        p(spk,"Recovered a Frag Grenade!")
+        drop()
+        drop()
         p(0,"LEVEL UP! "+soldier.deets())
     #add more and also alien items...?
         
@@ -573,11 +581,20 @@ def displayOptions():
     if AP > 2:
         invac.append("Reposition")
         p(len(invac),"(3AP) Reposition")
-    invac.append("Hunker Down")
-    p(len(invac),"Hunker Down")
+    if soldier.cover == 20 or soldier.cover == 40:
+        invac.append("Hunker Down")
+        p(len(invac),"Hunker Down")
     invac.append("End Turn")
     p(len(invac),"End Turn")
-    
+
+
+def drop():
+    itemdrop = rd.randrange(0,2)
+    if rd.randrange(1,100) < 5:
+        p(spk,"Recovered a "+items[itemdrop]+"!")
+        soldier.item.append(itemdrop)
+
+
 def craft(item):
     pass
 
