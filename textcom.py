@@ -113,32 +113,12 @@ barracks = []
 
 #here we define all the variables for a soldier (could probably all be stored in an array)
 class Soldier():
-    sID = 0
-    rank  =""
-    fName = ""
-    lName = ""
-    HP = 0
-    aim = 0
-    mobility = 0
-    weapon = ""
-    secondary = ""
-    item = [""]
-    armour = 0
-    dmgp = 0
-    dmgs = 0
-    cover = 0
-    ammo = 0
-    overwatch = 0
-    XP = 0
-    alive = True
-    aimpenalty = 0
-
-    def __init__(self):
+    def __init__(self, sid):
         if rd.randrange(1,100) < 5:
             if rd.randrange(1, 3) == 1:
                 # CO Bradford
                 self.HP = 6
-                self.fName = "Central Officer"
+                self.rank = "Central Officer"
                 self.lName = "Bradford"
                 self.aim = 100
                 self.weapon = 4
@@ -159,7 +139,7 @@ class Soldier():
             self.aim = rd.randrange(50,75)
             self.weapon = rd.randrange(0,2)
             self.rank = "Rookie"
-        self.sID = len(barracks)
+        self.sID = sid
         self.mobility = rd.randrange(11,16)
         if self.weapon == 0:
             self.ammo = 4
@@ -172,14 +152,19 @@ class Soldier():
         self.dmgs = 2
         self.item = [(rd.randrange(0,3)),(rd.randrange(0,2))]
         self.armour = "BDY" #body armour
-
+        self.cover = 0
+        self.overwatch = 0
+        self.XP = 0
+        self.alive = True
+        self.aimpenalty = 0
 
     def summon(self):
         p(0,self.rank+" "+self.fName+" "+self.lName+" -  "+str(self.HP)+" HP"+" - "+str(self.aim)+ " Aim")
         p(0,"Items: "+priwep[self.weapon]+", "+items[self.item[0]]+", "+items[self.item[1]])
+
     def deets(self):
         return(self.rank+" "+self.lName)
-    #randomisation of the starting rookies
+
     def updateWep(self):
         if soldier.weapon == 2:
             self.dmgp = 5
@@ -873,7 +858,7 @@ p("Bradford", "Choose a soldier from the 3 below to go on the mission.")
 
 #generates soldiers
 for i in range(3):
-    x = Soldier()
+    x = Soldier(i)
     barracks.append(x)
 
 #displays a list of the soldiers
