@@ -332,7 +332,7 @@ XCOM_FEMALE_NICKNAMES_MEC = [
 bradford = ["CLOSE RANGE?!","WHAT HAVE YOU DONE?!","COMMANDER!","WE'RE PICKING UP MULTIPLE CONTACTS!","CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!"]
 VAN_DOORN_QUOTES = [
     "I'm the Ops team! I'll get over there!",
-    "I'll get down there! Just fair if I have all the fun.",
+    "I'll get down there! Only fair if I have all the fun.",
     "I'm getting down there or what?",
     "Come on! I won't go down without a fight.",
     # "Thank God you're here. I'm still breathing, but I can't say the same for a lot of my boys. Let's get out of here before any more of those things show up.",
@@ -689,7 +689,7 @@ class Alien(Unit):
     #gives us names for when we reference the alien in game
     def __str__(self):
         return '(' + self.species + ') ' + ALIEN_RANKS[self.nrank] + ' '      \
-               + self.firstname + self.lastname
+               + self.firstname + " " + self.lastname
 
     #gives us tactical information, like HP and hit chance
     def tactical_info(self, chance):
@@ -738,7 +738,7 @@ def playerTurn():
                 p("2","(8AP) Reload")
             while out == False:
                 action = a("int","#")
-                #until they enter valid text, see a(form,q) for moer information
+                #until they enter valid text, see a(form,q) for more information
             out = False
             if action == "1":
                 if soldier.lastname == "Bradford":
@@ -1333,7 +1333,7 @@ x = Alien()
 x.muton()
 x.nrank = 8
 x.refresh()
-x.hp = 20
+x.hp = 50
 
 #generates the pods in each room
 room.append([])
