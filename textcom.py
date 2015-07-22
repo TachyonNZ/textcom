@@ -130,7 +130,7 @@ class Soldier():
     ammo = 0
     overwatch = 0
     XP = 0
-    alive = 1
+    alive = True
     aimpenalty = 0
 
     def __init__(self):
@@ -207,7 +207,7 @@ class Alien():
     armour = 0
     dmgp = 0
     dmgs = 0
-    alive = 0
+    alive = False
     cover = 0
     ammo = 0
     overwatch = 0
@@ -227,7 +227,7 @@ class Alien():
         self.dmgs = 3
         self.item1 = rd.randrange(0,3)
         self.armour = "BDY" #body armour
-        self.alive = 1
+        self.alive = True
     def thinman(self):
         self.ammo = 1
         self.species = "Thin Man"
@@ -244,7 +244,7 @@ class Alien():
         self.dmgs = 3
         self.item1 = rd.randrange(0,3)
         self.armour = "BDY" #body armour
-        self.alive = 1
+        self.alive = True
     def floater(self):
         self.ammo = 1
         self.species = "Floater"
@@ -261,7 +261,7 @@ class Alien():
         self.dmgp = 4
         self.dmgs = 3
         self.armour = "BDY" #body armour
-        self.alive = 1
+        self.alive = True
     def muton(self):
         self.ammo = 1
         self.species = "Muton"
@@ -278,7 +278,7 @@ class Alien():
         self.dmgp = 6
         self.dmgs = 4
         self.armour = "BDY" #body armour
-        self.alive = 1
+        self.alive = True
     def refresh(self):
         self.HP += self.rank*round(rd.random()*2)
         self.aim  +=  self.rank*round(rd.random()*2)
@@ -323,7 +323,7 @@ def playerTurn():
     global alloy
     AP = soldier.mobility
     soldier.overwatch = 0
-    while AP > 0 and soldier.alive == 1: #while the player has spare action points left
+    while AP > 0 and soldier.alive == True: #while the player has spare action points left
         p(0,"HP - "+str(soldier.HP))
         p(0,"AP - "+str(AP))
         #displays stats
@@ -593,7 +593,7 @@ def alienTurn():
         except ( Exception ):
             i = 0
         #because something may have happened that causes an index error
-        if alium.alive != 0 and soldier.alive == 1:
+        if alium.alive != 0 and soldier.alive == True:
             cthplayer = alium.aim - soldier.cover
             if alium.item1 == 2: #focusing lens
                 cthplayer += 20
@@ -652,7 +652,7 @@ def checkPlayerDead():
         print("Meld:",meld)
         print("Alloy:",alloy)
         print("Total Score:",(fragments+elerium+meld+alloy+soldier.XP+roomNo))
-        soldier.alive = 0
+        soldier.alive = False
         quit
         #doesn't want to stop the whole game straight away for some reason
 
@@ -866,26 +866,28 @@ def mutate(i):
         x.rank += 4
         x.refresh()
 
-p("Bradford","Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
-p("Bradford","Choose a soldier from the 3 below to go on the mission.")
 
+# def main():
+p("Bradford", "Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
+p("Bradford", "Choose a soldier from the 3 below to go on the mission.")
+
+#generates soldiers
 for i in range(3):
     x = Soldier()
     barracks.append(x)
-#generates soldiers
 
+#displays a list of the soldiers
 for i in range(len(barracks)):
     p(0,str(i+1)+": ")
     barracks[i].summon()
     p(0,"")
-#displays a list of the soldiers
 
+#forces you to pick only one soldier
 while out == False and int(out) < len(barracks):
     soldier = a("int","#")
     out = True
 out = False
 soldier = barracks[int(soldier)-1]
-#forces you to pick only one soldier
 
 spk = soldier.fName + " " + soldier.lName
 if soldier.lName == "Bradford":
@@ -934,24 +936,22 @@ x.rank = 8
 x.refresh()
 x.HP = 20
 
+#generates the pods in each room
 room.append([])
 room[31] = []
-#generates the pods in each room
-
-
 
 roomNo = 0
 AP = soldier.mobility
 
 #game loop, runs until your soldier is killed
-while soldier.alive == 1:
+while soldier.alive == True:
     try:
         playerTurn()
         p(0,soldier.deets()+" is out of AP!")
         print("Alien Activity!")
         s(2)
 
-        if soldier.alive == 1:
+        if soldier.alive == True:
             alienTurn()
     except ( ValueError or IndexError ):
         pass
@@ -959,3 +959,4 @@ while soldier.alive == 1:
         print("You have won the game!")
         break
 quit
+
