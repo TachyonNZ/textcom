@@ -287,6 +287,8 @@ def playerTurn():
         #displays stats
         if len(room[roomNo]) == 0:
             p("1","Advance")
+            if AP > 7:
+                p("2","(8AP) Reload")
             while out == False:
                 action = a("int","#")
                 #until they enter valid text, see a(form,q) for moer information
@@ -304,19 +306,42 @@ def playerTurn():
                     p(0,soldier.deets()+" is in HALF cover.")
                     soldier.cover = 20
                 playerTurn()
+            if action == "2":
+                if AP > 7:
+                    if soldier.weapon == 0:
+                        soldier.ammo = 4
+                    elif soldier.weapon == 1:
+                        soldier.ammo = 3
+                    elif soldier.weapon == 2:
+                        soldier.ammo = 4
+                    elif soldier.weapon == 3:
+                        soldier.ammo = 5
+                    AP -= 8
+                    playerTurn()
         else:
             displayOptions()
             #now the player will choose an action
             while out == False:
                 action = a("int","#")
             out = False
-            sel = invac[int(action)-1]
+
+            try:
+                sel = invac[int(action)-1]
+            except ( IndexError ):
+                while out == False:
+                    action = a("int","#")
+                out = False
+            
             
             if sel == "Reload":
                 if soldier.weapon == 0:
                     soldier.ammo = 4
                 elif soldier.weapon == 1:
                     soldier.ammo = 3
+                elif soldier.weapon == 2:
+                    soldier.ammo = 4
+                elif soldier.weapon == 3:
+                    soldier.ammo = 5
                 #depending on what weapon the player has, they will get a certain amount of ammo
                 AP -= 8
             if sel == "Overwatch":
@@ -504,10 +529,12 @@ def alienTurn():
             if alium.cover < 20:
                 if rd.randrange(0,100) < 80:
                     move(alium,40)
+                elif rd.randrange(0,100) < 40:
+                    fire(alium,cthplayer)
                 else:
                     move(alium,20)
             if alium.cover < 40:
-                if cthplayer > 30 + rd.randrange(0,40):
+                if cthplayer > 50 + rd.randrange(0,40):
                     fire(alium,cthplayer)
                 elif rd.randrange(0,100) < 20:
                     if alium.item1 == 0:
@@ -526,8 +553,10 @@ def alienTurn():
                         fire(alium,cthplayer)
                         
             else:
-                if cthplayer > 50 + rd.randrange(0,40):
+                if cthplayer > 80 + rd.randrange(0,20):
                     fire(alium,cthplayer)
+                elif rd.randrange(0,100) < 80:
+                    move(alium,20)
                 else:
                     ow(alium)
 
@@ -597,26 +626,49 @@ def checkXP():
         drop()
         drop()
         p(0,"LEVEL UP! "+soldier.deets())
+    elif soldier.XP >= 2000 and not soldier.rank == "Major" and soldier.XP < 3000:
+        soldier.rank = "Major"
+        soldier.HP += 1
+        soldier.aim += 1
+        soldier.mobility += 1
+        drop()
+        drop()
+        drop()
+        p(0,"LEVEL UP! "+soldier.deets())
+    elif soldier.XP >= 3000 and not soldier.rank == "Colonel":
+        soldier.rank = "Colonel"
+        soldier.HP += 1
+        soldier.aim += 1
+        drop()
+        drop()
+        drop()
+        drop()
+        drop()
+        drop()
+        p(0,"LEVEL UP! "+soldier.deets())
 
-
-        
-    #add more and also alien items...?
         
 def getLoot(alium):
     fragments = 0
     elerium = 0
     meld = 0
     alloy = 0
-    soldier.XP += alium.rank + -(alium.HP)+2
-    fragments += -(alium.HP)
+    soldier.XP += alium.rank*abs(alium.HP) 
+    fragments += abs(alium.HP)
     elerium += alium.rank
-    meld += 1*alium.rank
+    meld += 2*alium.rank
     if alium.item1 == 0:
-        elerium += 1
+        elerium += 2
     elif alium.item1 == 1:
-        alloy += 3
+        alloy += 2
     elif alium.item1 == 2:
         fragments += 2
+    if alium.weapon == 0:
+        elerium += 1
+        fragments += 2
+    elif alium.weapon == 1:
+        elerium += 2
+        fragments += 4
     return [fragments, elerium, meld, alloy]
     #gets some sweet loot from those aliens
 
@@ -650,8 +702,8 @@ def displayOptions():
                 invac.append(alium)
                 p(len(invac),saywep+" : "+alium.deets(chance))
                 #displays a list of valid targets
-            invac.append("Overwatch")
-            p(len(invac),"Overwatch")
+        invac.append("Overwatch")
+        p(len(invac),"Overwatch")
     else:
         if AP > 7:
             invac.append("Reload")
@@ -691,6 +743,8 @@ def drop():
         if itemdrop == 4:
             soldier.weapon = 3
             soldier.updateWep()
+        else:
+            soldier.item.append(itemdrop)
 
 def craft(item):
     pass
@@ -810,6 +864,9 @@ AP = soldier.mobility
 while soldier.alive == 1:
     try:
         playerTurn()
+        print("Alien Activity!")
+        s(2)
+        
         if soldier.alive == 1:
             alienTurn()
     except ( ValueError or IndexError ):
