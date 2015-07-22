@@ -7,8 +7,21 @@ import time as tm
 fnm = ["Bob","Becks","Kate","Alex","Tim","Peter","Annetta","Violet","Jeb","Bill","Rune","Jeff","Kim","Lee","Iago","Soylent","Iko","Dan","John","Pedro","Juan","Rico","David","Andrew","Wilson","James","Richard","Rocky","Adam","Megan","Shelly","Kim","Bear"]
 lnm = ["Van Doorn","Meier","Dan Voorn","Durant","Lee","Kerman","Nilsen","Possible","Fox","Vin Diern","Vern Dern","Friendly","Civilian","Snek","Advint","Firaxi","Beegle","Green","Wolf","Grills","Red","Taa","Tank","Beardly","Sherman","Herman","Nerman","Nuton"]
 bradford = ["CLOSE RANGE?!","WHAT HAVE YOU DONE?!","COMMANDER!","WE'RE PICKING UP MULTIPLE CONTACTS!","CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!"]
+VAN_DOORN_QUOTES = [
+    "I'm the Ops team! I'll get over there!",
+    "I'll get down there! Just fair if I have all the fun.",
+    "I'm getting down there or what?",
+    "Come on! I won't go down without a fight.",
+    # "Thank God you're here. I'm still breathing, but I can't say the same for a lot of my boys. Let's get out of here before any more of those things show up.",
+    # "I don't know what outfit you're from, but I haven't seen gear like that before.",
+    "I just hope I get another shot at these alien bastards... I owe it to my men.",
+    "I just wish I could have done more for my people, I lost some good men.",
+    "It's looking bad out there; I might not make if you don't show up.",
+    "I owe you one... seriously... I wouldn't be here without your help."
+]
 
 #Soldier names
+VAN_DOORN = "Van Doorn"
 
 bbspecies = ["Sectoid"]
 sectoidfName = ["Glip","Gleep","Glup","Glorp","Gloop","Glop","Glump","Glerp","Glurp","Glarp"]
@@ -310,10 +323,12 @@ def playerTurn():
                 #until they enter valid text, see a(form,q) for moer information
             out = False
             if action == "1":
-                if not soldier.lName == "Bradford":
-                    p(spk,"Roger that, moving up!")
+                if soldier.lName == "Bradford":
+                    p(spk, "Commander! I advise you to reconsider!")
+                elif soldier.lName == VAN_DOORN:
+                    p(spk, "I'll get over there!")
                 else:
-                    p(spk,"Commander! I advise you to reconsider!")
+                    p(spk, "Roger that, moving up!")
                 AP -= 1 #this is redundant because AP is reset the next room anyway
                 roomNo += 1
                 checkspot(roomNo)
@@ -369,10 +384,12 @@ def playerTurn():
                 #depending on what weapon the player has, they will get a certain amount of ammo
                 AP -= 8
             if sel == "Overwatch":
-                if not soldier.lName == "Bradford":
-                    p(spk,"Got it, on Overwatch.")
+                if soldier.lName == "Bradford":
+                    p(spk, "Keep your eyes peeled!")
+                elif soldier.lName == VAN_DOORN:
+                    p(spk, "You coming down here or what?")
                 else:
-                    p(spk,"Keep your eyes peeled!")
+                    p(spk, "Got it, on Overwatch.")
                 soldier.overwatch = 1
                 AP = 0
             if sel == "End Turn":
@@ -382,16 +399,18 @@ def playerTurn():
                 checkForOverwatch("Alium",0)
                 #if any aliens are on overwatch, check and be shot at if they are
                 soldier.cover = 40
-                if not soldier.lName == "Bradford":
-                    p(spk,"Moving to Full cover!")
+                if soldier.lName == "Bradford":
+                    p(spk, "Moving to...wait...that's CLOSE RANGE!")
+                elif soldier.lName == VAN_DOORN:
+                    p(spk, "Come on! I won't go down without a fight.")
                 else:
-                    p(spk,"Moving to...wait...that's CLOSE RANGE!")
+                    p(spk, "Moving to Full cover!")
                 if rd.randrange(0,100) < 50:
                     alium = rd.choice(room[roomNo])
                     p(0,alium.name()+" is flanked!")
                     alium.cover = 0
                 #chance to flank an alien
-                
+
             if sel == "Meds":
                 AP -= 10
                 print("HP restored.")
@@ -407,10 +426,12 @@ def playerTurn():
                 #provides extra cover to soldier
             if sel in room[roomNo]: #if sel is an Alien() pointer
                 AP -= 6
-                if not soldier.lName == "Bradford":
-                    p(spk,rd.choice(retort))
+                if soldier.lName == "Bradford":
+                    p(spk, rd.choice(bradford))
+                elif soldier.lName == VAN_DOORN:
+                    p(spk, rd.choice(VAN_DOORN_QUOTES))
                 else:
-                    p(spk,rd.choice(bradford))
+                    p(spk, rd.choice(retort))
                 if soldier.weapon <= 1:
                     p(0,"*Dakkadakkadakka*")
                 if soldier.weapon == 4:
@@ -510,10 +531,10 @@ def checkForOverwatch(who,getalium):
                     alium.HP -= dmg
                     checkDead(alium)
                 else:
-                    if not soldier.lName == "Bradford":
-                        p(spk,"Shot failed to connect!")
-                    else:
+                    if soldier.lName == "Bradford":
                         p(spk,"How did I miss that?!")
+                    else:
+                        p(spk,"Shot failed to connect!")
                 soldier.ammo -= 1
                 soldier.overwatch = 0
 
@@ -854,10 +875,12 @@ soldier = barracks[int(soldier)-1]
 #forces you to pick only one soldier
 
 spk = soldier.fName + " " + soldier.lName
-if not soldier.lName == "Bradford":
-    p(spk, "Ready for duty, Commander!")
-else:
+if soldier.lName == "Bradford":
     p(spk, "What? There must have been a mistake on the sheet, Commander! You can't send --")
+elif soldier.lName == VAN_DOORN:
+    p(spk, "I'm the Ops team?")
+else:
+    p(spk, "Ready for duty, Commander!")
 room = [[]]
 options = ["Sectoid","Thinman","Floater","Muton"]
 
