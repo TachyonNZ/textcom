@@ -430,6 +430,25 @@ def a(form, q): #ask
     return out
 #get input and check against wanted type
 
+def get_int_input(prompt, vmin, vmax):
+    '''Get a range checked integer from the player.'''
+
+    if prompt[-1] != ' ':
+        prompt += ' '
+    while True:
+        instr = input(prompt)
+        if instr.isdigit():
+            val = int(instr)
+            if val < vmin:
+                print('The input is too small')
+            elif vmax < val:
+                print('The input is too big')
+            else:
+                return val
+        else:
+            print('Input must be a number')
+
+
 def p(spk,q): #print with speaker and possibly delay
     if spk != 0:
         print(str(spk)+': "'+str(q)+'"')
@@ -1282,11 +1301,7 @@ for i in range(len(barracks)):
     p(0,"")
 
 #forces you to pick only one soldier
-while out == False and int(out) < len(barracks):
-    soldier = a("int","#")
-    out = True
-out = False
-soldier = barracks[int(soldier)-1]
+soldier = barracks[get_int_input('# ', 1, 3) - 1]
 
 spk = soldier.firstname + " " + soldier.lastname
 if soldier.lastname == "Bradford":
