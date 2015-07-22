@@ -423,8 +423,6 @@ def playerTurn():
                 if soldier.weapon == 1 or soldier.weapon == 2 : #carbine
                     chance += 10
                 roll = rd.randrange(0,100)
-                print(roll)
-                print(str(chance)+"%")
                 if roll <= chance+10:
                     damage = soldier.dmgp+rd.randrange(-1,2)
                     sel.HP -= damage
