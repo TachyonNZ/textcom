@@ -45,7 +45,7 @@ aitems = {0:"Alien Grenade",1:"Alloy Plating",2:"Focus Lens",999:"None"}
 
 pod = []
 room = []
-roomNo = -1
+roomNo = 0
 
 
 fragments = 0
@@ -413,9 +413,9 @@ def playerTurn():
                     p(spk,rd.choice(bradford))
                 if soldier.weapon <= 1:
                     p(0,"*Dakkadakkadakka*")
-                if soldier.weapon == 4:
+                elif soldier.weapon == 4:
                     p(0,"*Bang*")
-                else:
+                elif soldier.weapon == 2 or soldier.weapon ==  3:
                     p(0,"*Whap-whap-whap*")
                 chance = (soldier.aim)-(sel.cover)
                 if 2 in soldier.item: #scope
@@ -861,6 +861,8 @@ else:
 room = [[]]
 options = ["Sectoid","Thinman","Floater","Muton"]
 
+roomNo = 0
+
 for i in range(30):
     pod = []
     for j in range(3+rd.randrange(-2,2)):
@@ -904,7 +906,6 @@ room[31] = []
     
 
 
-roomNo = 0
 AP = soldier.mobility
 
 #game loop, runs until your soldier is killed
