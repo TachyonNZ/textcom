@@ -43,7 +43,22 @@ XCOM_MALE_FIRSTNAME = [
     'Iko',
     'Megan',
     'Shelly',
-    'Kim'
+    'Kim',
+    'Nina',
+    'Olga',
+    'Katherina',
+    'Anya',
+    'Suzie',
+    'Rebecca',
+    'Joanna',
+    'Patricia',
+    'Maria',
+    'Judith',
+    'Carmen',
+    'Isabel',
+    'Ana',
+    'Laura',
+    'Sara'
 ]
 XCOM_LASTNAME = [
     'Meier',
