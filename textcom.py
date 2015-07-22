@@ -5,6 +5,9 @@
 import random as rd
 import time as tm
 
+########################################################################
+# constants                                                            #
+########################################################################
 
 SEX_FEMALE = 'f'
 SEX_MALE = 'm'
@@ -346,7 +349,6 @@ VAN_DOORN_QUOTES = [
 #Soldier names
 VAN_DOORN = "Van Doorn"
 
-bbspecies = ["Sectoid"]
 sectoidfName = ["Glip","Gleep","Glup","Glorp","Gloop","Glop","Glump","Glerp","Glurp","Glarp"]
 sectoidlName = ["Glop","Glarp","Glupple","Glorple","Gloopley","Glopperson","Glep","Glommery"]
 thinfName = ["T.","P.","H.","Z.","K.","A.","F.","X.","P.","L.","W.","S.","V."]
@@ -400,18 +402,19 @@ retort = ("Suck on this!","Eat this!","Pick on someone your own size!","Take thi
 items = {0:"Frag Grenade",1:"Nano Serum",2:"Scope",3:"Alien Grenade",999:"None"}
 drops = {0:"Frag Grenade",1:"Nano Serum",2:"Alien Grenade",3:"Light Plasma Rifle",4:"Plasma Rifle"}
 
+#aliem weapons, items and powers
 apowers = {0: "Mindfray",1: "Psi Boost"}
 aitems = {0:"Alien Grenade",1:"Alloy Plating",2:"Focus Lens",999:"None"}
-#aliem weapons, items and powers
 
+
+########################################################################
+# Legacy stuff to be removed                                           #
+########################################################################
+
+# to be removed
 pod = []
-room = []
+room = [[]]
 roomNo = -1
-
-fragments = 0
-elerium = 0
-meld = 0
-alloy = 0
 
 out = False
 def a(form, q): #ask
@@ -430,25 +433,6 @@ def a(form, q): #ask
     return out
 #get input and check against wanted type
 
-def get_int_input(prompt, vmin, vmax):
-    '''Get a range checked integer from the player.'''
-
-    if prompt[-1] != ' ':
-        prompt += ' '
-    while True:
-        instr = input(prompt)
-        if instr.isdigit():
-            val = int(instr)
-            if val < vmin:
-                print('The input is too small')
-            elif vmax < val:
-                print('The input is too big')
-            else:
-                return val
-        else:
-            print('Input must be a number')
-
-
 def p(spk,q): #print with speaker and possibly delay
     if spk != 0:
         print(str(spk)+': "'+str(q)+'"')
@@ -461,16 +445,10 @@ def s(t):
     tm.sleep(t)
 #go to sleep for t seconds
 
-def c(q, chatID):
-    picked = a(q)
-    picked = int(picked)
-    chatmatrix(picked, chatID)
-#unused, relic of another TBG I was making
 
-#########
-
-barracks = []
-
+########################################################################
+# weapon classes                                                       #
+########################################################################
 
 class Weapon:
     '''Base class for all weapon classes'''
@@ -550,6 +528,9 @@ class BradfordsPistol(Weapon):
     def __init__(self):
         super().__init__("Bradford's Pistol", 5, 999)
 
+########################################################################
+# unit classes                                                         #
+########################################################################
 
 class Unit:
     def __init__(self, hp, aim, mobility, nrank, firstname, lastname,
@@ -599,48 +580,6 @@ class Soldier(Unit):
           + str(self.aim) + ' Aim')
         p(0, 'Items: ' + self.weapon.name + ', ' + items[self.items[0]] + ', '\
           + items[self.items[1]])
-
-
-# Global variables to prevent duplicate hero soldiers
-have_bradford = False
-have_vdoorn = False
-
-
-def create_soldier(sid):
-    global have_bradford
-    global have_vdoorn
-    # sid, hp, aim, mobility, rank, firstname, lastname, armour, weapon, items
-
-    items = [(rd.randrange(0, 3)), (rd.randrange(0, 2))]
-    mobility = rd.randrange(11, 16)
-    armour = 'BDY'
-    if rd.randrange(1,100) < 5:
-        if rd.randrange(0, 2) == 0:
-            if not have_bradford:
-                return Soldier(sid, SEX_MALE, 6, 100, mobility,               \
-                               RANK_CENTRAL_OFFICER, '', 'Bradford', armour,  \
-                               BradfordsPistol(), items)
-        if not have_vdoorn:
-            return Soldier(sid, SEX_MALE, 6, 80, mobility, RANK_GENERAL,      \
-                           'Peter', VAN_DOORN, armour, BallisticRifle(), items)
-    weapon = None
-    if rd.randrange(0, 2) == 0:
-        weapon = BallisticRifle()
-    else:
-        weapon = BallisticCarbine()
-    sex = None
-    if rd.randrange(0, 2) == 0:
-        sex = SEX_FEMALE
-    else:
-        sex = SEX_MALE
-    name = None
-    if sex == SEX_FEMALE:
-        name = rd.choice(XCOM_FEMALE_FIRSTNAME)
-    else:
-        name = rd.choice(XCOM_MALE_FIRSTNAME)
-    return Soldier(sid, sex, rd.randrange(3, 6), rd.randrange(50, 75),        \
-                   mobility, RANK_ROOKIE, name, rd.choice(XCOM_LASTNAME),     \
-                   armour, weapon, items)
 
 
 #we define the aliens here. they are initialised as sectoids but this can be changed with the definitions, such
@@ -715,6 +654,81 @@ class Alien(Unit):
         return (ALIEN_RANKS[self.nrank] + ' ' + self.firstname + ' '          \
                 + self.lastname + ' - ' + str(self.hp) + ' HP - '             \
                 + str(chance) + '%')
+
+
+########################################################################
+# globals                                                              #
+########################################################################
+
+# Global variables to prevent duplicate hero soldiers
+have_bradford = False
+have_vdoorn = False
+
+# Global stat counters
+fragments = 0
+elerium = 0
+meld = 0
+alloy = 0
+
+
+########################################################################
+# functions                                                            #
+########################################################################
+
+def get_int_input(prompt, vmin, vmax):
+    '''Get a range checked integer from the player.'''
+
+    if prompt[-1] != ' ':
+        prompt += ' '
+    while True:
+        instr = input(prompt)
+        if instr.isdigit():
+            val = int(instr)
+            if val < vmin:
+                print('The input is too small')
+            elif vmax < val:
+                print('The input is too big')
+            else:
+                return val
+        else:
+            print('Input must be a number')
+
+
+def create_soldier(sid):
+    global have_bradford
+    global have_vdoorn
+    # sid, hp, aim, mobility, rank, firstname, lastname, armour, weapon, items
+
+    items = [(rd.randrange(0, 3)), (rd.randrange(0, 2))]
+    mobility = rd.randrange(11, 16)
+    armour = 'BDY'
+    if rd.randrange(1,100) < 5:
+        if rd.randrange(0, 2) == 0:
+            if not have_bradford:
+                return Soldier(sid, SEX_MALE, 6, 100, mobility,               \
+                               RANK_CENTRAL_OFFICER, '', 'Bradford', armour,  \
+                               BradfordsPistol(), items)
+        if not have_vdoorn:
+            return Soldier(sid, SEX_MALE, 6, 80, mobility, RANK_GENERAL,      \
+                           'Peter', VAN_DOORN, armour, BallisticRifle(), items)
+    weapon = None
+    if rd.randrange(0, 2) == 0:
+        weapon = BallisticRifle()
+    else:
+        weapon = BallisticCarbine()
+    sex = None
+    if rd.randrange(0, 2) == 0:
+        sex = SEX_FEMALE
+    else:
+        sex = SEX_MALE
+    name = None
+    if sex == SEX_FEMALE:
+        name = rd.choice(XCOM_FEMALE_FIRSTNAME)
+    else:
+        name = rd.choice(XCOM_MALE_FIRSTNAME)
+    return Soldier(sid, sex, rd.randrange(3, 6), rd.randrange(50, 75),        \
+                   mobility, RANK_ROOKIE, name, rd.choice(XCOM_LASTNAME),     \
+                   armour, weapon, items)
 
 
 #scatters the aliens in a room, some won't find any cover.
@@ -1289,6 +1303,7 @@ def mutate(i):
 p("Bradford", "Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
 p("Bradford", "Choose a soldier from the 3 below to go on the mission.")
 
+barracks = []
 #generates soldiers
 for i in range(3):
     x = create_soldier(i)
@@ -1310,7 +1325,6 @@ elif soldier.lastname == VAN_DOORN:
     p(spk, "I'm the Ops team?")
 else:
     p(spk, "Ready for duty, Commander!")
-room = [[]]
 options = ["Sectoid","Thinman","Floater","Muton"]
 
 for i in range(30):
@@ -1372,5 +1386,3 @@ while soldier.alive == True:
     if roomNo == 31:
         print("You have won the game!")
         break
-quit
-
