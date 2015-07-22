@@ -4,19 +4,21 @@
 import random as rd
 import time as tm
 
-fnm = ["Bob","Becks","Kate","Alex","Tim","Peter","Chilling","Annetta","Violet","Jeb","Bill","Rune","Jeff","Kim","Lee","Iago"]
-lnm = ["Van Doorn","Meier","Dan Voorn","Durant","Lee","Kerman","Nilsen","Possible","Fox","Vin Diern","Vern Dern","Friendly","Civilian","Snek","Advint","Eggsalt"]
+fnm = ["Bob","Becks","Kate","Alex","Tim","Peter","Annetta","Violet","Jeb","Bill","Rune","Jeff","Kim","Lee","Iago","Soylent","Iko","Dan","John","Pedro","Juan","Rico","David","Andrew","Wilson","James","Richard","Rocky","Adam","Megan","Shelly","Kim","Bear"]
+lnm = ["Van Doorn","Meier","Dan Voorn","Durant","Lee","Kerman","Nilsen","Possible","Fox","Vin Diern","Vern Dern","Friendly","Civilian","Snek","Advint","Firaxi","Beegle","Green","Wolf","Grills","Red","Taa","Tank","Beardly","Sherman","Herman","Nerman","Nuton"]
+bradford = ["CLOSE RANGE?!","WHAT HAVE YOU DONE?!","COMMANDER!","WE'RE PICKING UP MULTIPLE CONTACTS!","CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!"]
+
 #Soldier names
 
 bbspecies = ["Sectoid"]
 sectoidfName = ["Glip","Gleep","Glup","Glorp","Gloop","Glop","Glump","Glerp","Glurp","Glarp"]
 sectoidlName = ["Glop","Glarp","Glupple","Glorple","Gloopley","Glopperson","Glep","Glommery"]
-thinfName = ["T.","P.","H.","Z.","K.","A.","F.","X.","P.","L.","W.","S"]
-thinlName = ["Hinman","Alium","Van Doom","Lmao","Notanalien","Anderson","Smith","Human","Clark","Warzonager"]
-floaterfName = ["Dirk","Ferdinand","Frederick","Algernon","Angus","King","Cornelius","Francis","Christopher","Gustav"]
-floaterlName = ["Meyer","Mleadeer","Peters","Prince","Vos","Wolf","Schwarz","Frank","Miller","Anderssen"]
+thinfName = ["T.","P.","H.","Z.","K.","A.","F.","X.","P.","L.","W.","S.","V."]
+thinlName = ["Hinman","Alium","Van Doom","Lmao","Notanalien","Anderson","Smith","Human","Clark","Warzonager","Iper","Thinmint","Mint","Spear"]
+floaterfName = ["Dirk","Ferdinand","Frederick","Algernon","Angus","King","Cornelius","Francis","Christopher","Gustav","Richard","Ivan","Yuri","Vlad"]
+floaterlName = ["Meyer","Mleadeer","Peters","Prince","Vos","Wolf","Schwarz","Frank","Miller","Anderssen","Slavolav","Stroganov","Costarov"]
 
-mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy","Jimmy"]
+mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy","Jimmy","Hank",""]
 mutonlName = ["Von Mooter","The Muton","Hugan","Jankins","Jefferson"]
 #Aliem names
 
@@ -24,9 +26,10 @@ aranks = {0:"Peon",1:"Soldier",2:"Trooper",3:"Officer",4:"Commander",5:"Overseer
 #alien ranks
 
 retort = ("Suck on this!","Eat this!","Pick on someone your own size!","Take this!","Welcome to Earth!")
+
 #when a soldier shoots at an alien
 
-priwep = {0:"Ballistic Rifle",1:"Ballistic Carbine",2:"Light Plasma Rifle",3:"Plasma Rifle"}
+priwep = {0:"Ballistic Rifle",1:"Ballistic Carbine",2:"Light Plasma Rifle",3:"Plasma Rifle",4:"Bradford's Pistol"}
 secwep = {0:"Ballistic Pistol",1:"Autopistol"}
 items = {0:"Frag Grenade",1:"Nano Serum",2:"Scope",3:"Alien Grenade",999:"None"}
 drops = {0:"Frag Grenade",1:"Nano Serum",2:"Alien Grenade",3:"Light Plasma Rifle",4:"Plasma Rifle"}
@@ -126,16 +129,28 @@ class Soldier():
         self.weapon = rd.randrange(0,2)
         if self.weapon == 0:
             self.ammo = 4
+            self.dmgp = 3
         elif self.weapon == 1:
             self.ammo = 3
+            self.dmgp = 2
         self.secondary = rd.randrange(0,2)
-        self.dmgp = 3
+        
         self.dmgs = 2
-        self.item = [(rd.randrange(0,3))]
+        self.item = [(rd.randrange(0,3)),(rd.randrange(0,2))]
         self.armour = "BDY" #body armour
+        if rd.randrange(1,100) < 5:
+            self.HP = 6
+            self.fName = "Central Officer"
+            self.lName = "Bradford"
+            self.aim = 100
+            self.weapon = 4
+            self.ammo = 999
+            self.dmgp = 5
+            
+        
     def summon(self):
         p(0,self.rank+" "+self.fName+" "+self.lName+" -  "+str(self.HP)+" HP"+" - "+str(self.aim)+ " Aim")
-        p(0,"Items: "+priwep[self.weapon]+", "+secwep[self.secondary]+", "+items[self.item[0]])
+        p(0,"Items: "+priwep[self.weapon]+", "+items[self.item[0]]+", "+items[self.item[1]])
     def deets(self):
         return(self.rank+" "+self.lName)
     #randomisation of the starting rookies
@@ -281,6 +296,7 @@ def playerTurn():
     global meld
     global alloy
     AP = soldier.mobility
+    soldier.overwatch = 0
     while AP > 0 and soldier.alive == 1: #while the player has spare action points left
         p(0,"HP - "+str(soldier.HP))
         p(0,"AP - "+str(AP))
@@ -294,7 +310,10 @@ def playerTurn():
                 #until they enter valid text, see a(form,q) for moer information
             out = False
             if action == "1":
-                p(spk,"Roger that, moving up!")
+                if not soldier.lName == "Bradford":
+                    p(spk,"Roger that, moving up!")
+                else:
+                    p(spk,"Commander! I advise you to reconsider!")
                 AP -= 1 #this is redundant because AP is reset the next room anyway
                 roomNo += 1
                 checkspot(roomNo)
@@ -316,6 +335,8 @@ def playerTurn():
                         soldier.ammo = 4
                     elif soldier.weapon == 3:
                         soldier.ammo = 5
+                    elif soldier.weapon == 4:
+                        soldier.ammo = 999
                     AP -= 8
                     playerTurn()
         else:
@@ -324,13 +345,14 @@ def playerTurn():
             while out == False:
                 action = a("int","#")
             out = False
-
+            
             try:
                 sel = invac[int(action)-1]
             except ( IndexError ):
                 while out == False:
                     action = a("int","#")
                 out = False
+            sel = invac[int(action)-1]
             
             
             if sel == "Reload":
@@ -342,10 +364,15 @@ def playerTurn():
                     soldier.ammo = 4
                 elif soldier.weapon == 3:
                     soldier.ammo = 5
+                elif soldier.weapon == 4:
+                    soldier.ammo = 999
                 #depending on what weapon the player has, they will get a certain amount of ammo
                 AP -= 8
             if sel == "Overwatch":
-                p(spk,"Got it, on Overwatch.")
+                if not soldier.lName == "Bradford":
+                    p(spk,"Got it, on Overwatch.")
+                else:
+                    p(spk,"Keep your eyes peeled!")
                 soldier.overwatch = 1
                 AP = 0
             if sel == "End Turn":
@@ -355,7 +382,10 @@ def playerTurn():
                 checkForOverwatch("Alium",0)
                 #if any aliens are on overwatch, check and be shot at if they are
                 soldier.cover = 40
-                p(spk,"Moving to Full cover!")
+                if not soldier.lName == "Bradford":
+                    p(spk,"Moving to Full cover!")
+                else:
+                    p(spk,"Moving to...wait...that's CLOSE RANGE!")
                 if rd.randrange(0,100) < 50:
                     alium = rd.choice(room[roomNo])
                     p(0,alium.name()+" is flanked!")
@@ -377,17 +407,25 @@ def playerTurn():
                 #provides extra cover to soldier
             if sel in room[roomNo]: #if sel is an Alien() pointer
                 AP -= 6
-                p(spk,rd.choice(retort))
+                if not soldier.lName == "Bradford":
+                    p(spk,rd.choice(retort))
+                else:
+                    p(spk,rd.choice(bradford))
                 if soldier.weapon <= 1:
                     p(0,"*Dakkadakkadakka*")
+                if soldier.weapon == 4:
+                    p(0,"*Bang*")
                 else:
                     p(0,"*Whap-whap-whap*")
-                chance = (soldier.aim)-(sel.cover)-(soldier.aimpenalty)
+                chance = (soldier.aim)-(sel.cover)
                 if 2 in soldier.item: #scope
                     chance += 0
-                if soldier.weapon == 1 or soldier.weapon == 2: #carbine
+                if soldier.weapon == 1 or soldier.weapon == 2 : #carbine
                     chance += 10
-                if rd.randrange(0,100) <= chance:
+                roll = rd.randrange(0,100)
+                print(roll)
+                print(str(chance)+"%")
+                if roll <= chance+10:
                     damage = soldier.dmgp+rd.randrange(-1,2)
                     sel.HP -= damage
                     soldier.ammo -= 1
@@ -402,7 +440,7 @@ def playerTurn():
                     soldier.ammo -= 1
             elif sel == "Frag":
                 AP -= 10
-                p(0,"BOOM!")
+                p(0,"BAM!")
                 #grenade, obviously
                 soldier.item.pop(soldier.item.index(0))
                 affected = room[roomNo]
@@ -439,9 +477,7 @@ def playerTurn():
                     except ( IndexError ):
                         i = 0 #reset the loop
                 #the grenade only affects some of the aliens in the room, but is guaranteed to hit at least 1
-                #it's not a bug, it's a feature
-    if AP <= 0:
-        p(0,soldier.deets()+" is out of AP!")
+                #it's not a bug, it's a feature        
     #ends turn by default
 
 
@@ -476,7 +512,10 @@ def checkForOverwatch(who,getalium):
                     alium.HP -= dmg
                     checkDead(alium)
                 else:
-                    p(spk," Shot failed to connect!")
+                    if not soldier.lName == "Bradford":
+                        p(spk,"Shot failed to connect!")
+                    else:
+                        p(spk,"How did I miss that?!")
                 soldier.ammo -= 1
                 soldier.overwatch = 0
 
@@ -493,6 +532,7 @@ def fire(alium,cthplayer):
 
 def nade(alium):
     p(0,alium.name()+" uses Alien Grenade!")
+    p(0,"**BLAM!**")
     alium.item1 = 999
     #sets the aliens item to 'none', no more grenades for you
     p(0,"3 damage!")
@@ -670,7 +710,7 @@ def getLoot(alium):
         elerium += 2
         fragments += 4
     return [fragments, elerium, meld, alloy]
-    #gets some sweet loot from those aliens
+    #gets some sweet sweet loot from those aliens
 
             
 
@@ -692,6 +732,8 @@ def displayOptions():
                 saywep = "(~5dmg)(6AP) Fire Light Plasma Rifle"
             elif soldier.weapon == 3:
                 saywep = "(~6dmg)(6AP) Fire Plasma Rifle"
+            elif soldier.weapon == 4: #if we have the rifle
+                saywep = "(~3dmg)(6AP) Fire Bradford's Pistol"
             for i in range(len(room[roomNo])):
                 alium = room[roomNo][i]
                 chance = (soldier.aim)-(alium.cover)
@@ -699,6 +741,10 @@ def displayOptions():
                     chance += 10
                 if 1 in soldier.item:
                     chance += 10
+                if chance < 0:
+                    chance = 5
+                if chance > 100:
+                    chance = 95
                 invac.append(alium)
                 p(len(invac),saywep+" : "+alium.deets(chance))
                 #displays a list of valid targets
@@ -788,8 +834,8 @@ def mutate(i):
         x.rank += 4
         x.refresh()
 
-p(0,"Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
-p(0,"Choose a soldier from the 3 below to go on the mission.")
+p("Bradford","Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
+p("Bradford","Choose a soldier from the 3 below to go on the mission.")
 
 for i in range(3):
     x = Soldier()
@@ -810,7 +856,10 @@ soldier = barracks[int(soldier)-1]
 #forces you to pick only one soldier
 
 spk = soldier.fName + " " + soldier.lName
-p(spk, "Ready for duty, Commander!")
+if not soldier.lName == "Bradford":
+    p(spk, "Ready for duty, Commander!")
+else:
+    p(spk, "What? There must have been a mistake on the sheet, Commander! You can't send --")
 room = [[]]
 options = ["Sectoid","Thinman","Floater","Muton"]
 
@@ -864,6 +913,7 @@ AP = soldier.mobility
 while soldier.alive == 1:
     try:
         playerTurn()
+        p(0,soldier.deets()+" is out of AP!")
         print("Alien Activity!")
         s(2)
         
