@@ -5,8 +5,315 @@
 import random as rd
 import time as tm
 
-fnm = ["Bob","Becks","Kate","Alex","Tim","Peter","Annetta","Violet","Jeb","Bill","Rune","Jeff","Kim","Lee","Iago","Soylent","Iko","Dan","John","Pedro","Juan","Rico","David","Andrew","Wilson","James","Richard","Rocky","Adam","Megan","Shelly","Kim","Bear"]
-lnm = ["Meier","Dan Voorn","Durant","Lee","Kerman","Nilsen","Possible","Fox","Vin Diern","Vern Dern","Friendly","Civilian","Snek","Advint","Firaxi","Beegle","Green","Wolf","Grills","Red","Taa","Tank","Beardly","Sherman","Herman","Nerman","Nuton"]
+
+SEX_FEMALE = 'f'
+SEX_MALE = 'm'
+XCOM_FEMALE_FIRSTNAME = [
+    'Bob',
+    'Alex',
+    'Tim',
+    'Peter',
+    'Jeb',
+    'Bill',
+    'Rune',
+    'Jeff',
+    'Lee',
+    'Iago',
+    'Soylent',
+    'Dan',
+    'John',
+    'Pedro',
+    'Juan',
+    'Rico',
+    'David',
+    'Andrew',
+    'Wilson',
+    'James',
+    'Richard',
+    'Rocky',
+    'Adam',
+    'Bear',
+]
+XCOM_MALE_FIRSTNAME = [
+    'Becks',
+    'Kate',
+    'Annetta',
+    'Violet',
+    'Kim',
+    'Iko',
+    'Megan',
+    'Shelly',
+    'Kim'
+]
+XCOM_LASTNAME = [
+    'Meier',
+    'Dan Voorn',
+    'Durant',
+    'Lee',
+    'Kerman',
+    'Nilsen',
+    'Possible',
+    'Fox',
+    'Vin Diern',
+    'Vern Dern',
+    'Friendly',
+    'Civilian',
+    'Snek',
+    'Advint',
+    'Firaxi',
+    'Beegle',
+    'Green',
+    'Wolf',
+    'Grills',
+    'Red',
+    'Taa',
+    'Tank',
+    'Beardly',
+    'Sherman',
+    'Herman',
+    'Nerman',
+    'Nuton'
+]
+# <http://www.ufopaedia.org/index.php?title=Nicknames_%28EU2012%29>
+XCOM_UNISEX_NICKNAMES_ASSAULT = [
+    'All Day',
+    'Android',
+    'Blitz',
+    'Bonzai',
+    'Boomer',
+    'Caper',
+    'Chops',
+    'Cobra',
+    'Coney',
+    'D.O.A.',
+    'DJ',
+    'Desperado',
+    'Devil Dog',
+    'Dice',
+    'Double Down',
+    'Geronimo',
+    'Gonzo',
+    'Gunner',
+    'Hardcore',
+    'Hazard',
+    'Loco',
+    'Mad Dog',
+    'Mustang',
+    'Pitbull',
+    'Psycho',
+    'Rhino',
+    'Septic',
+    'Sheriff',
+    'Shotsy',
+    'Smash',
+    'Socks',
+    'Spitfire',
+    'Tombstone',
+    'Trips',
+    'Twitch',
+    'Vandal',
+    'Wardog',
+    'Werewolf',
+    'Wildchild',
+    'Wolverine',
+    'Zilch'
+]
+XCOM_MALE_NICKNAMES_ASSAULT = [
+    'Bull',
+    'Cash',
+    'Cowboy',
+    'Duke',
+    'Mad Man',
+    'Nitro',
+    'Rascal',
+    'Spike',
+    'Viking'
+]
+XCOM_FEMALE_NICKNAMES_ASSAULT = [
+    'All In',
+    'Freestyle',
+    'Wednesday',
+]
+XCOM_UNISEX_NICKNAMES_HEAVY = [
+    'Arcade',
+    'Boom Boom',
+    'Brick',
+    'Casino',
+    'Collateral',
+    'Crash',
+    'Crater',
+    'Diesel',
+    'Disco',
+    'Doomsday',
+    'Dozer',
+    'Flash',
+    'Hulk',
+    'Lights Out',
+    'Nova',
+    'Nuke',
+    'Prototype',
+    'Richter',
+    'Road Block',
+    'Sledge',
+    'Smokey',
+    'Strobe',
+    'Tectonic',
+    'Thunder'
+]
+XCOM_MALE_NICKNAMES_HEAVY = [
+    'Buster',
+    'Kingpin',
+    'Kong',
+    'Mack',
+    'Moose',
+    'Nero',
+    'Odin',
+    'Papa Bear',
+    'Tank',
+    'Yeti'
+]
+XCOM_FEMALE_NICKNAMES_HEAVY = [
+    'Big Momma',
+    'Mama Bear'
+]
+XCOM_UNISEX_NICKNAMES_SNIPER = [
+    'Alpha',
+    'Checkmate',
+    'Claymore',
+    'Cyclops',
+    'Deadbolt',
+    'Demon',
+    'Drifter',
+    'Echo',
+    'Emo',
+    'Enigma',
+    'Garrote',
+    'Ghost',
+    'Hex',
+    'Ice',
+    'Lockdown',
+    'Long Shot',
+    'Longbow',
+    'Low Rider',
+    'Nightmare',
+    'Nix',
+    'Omega',
+    'Shadow',
+    'Snake Eyes',
+    'Solo',
+    'Specter',
+    'Spider',
+    'Stalker',
+    'Vampire',
+    'Xeno',
+    'Zero',
+    'Zulu'
+]
+XCOM_MALE_NICKNAMES_SNIPER = [
+    'Godfather',
+    'Loki',
+    'Pharaoh',
+    'Ranger',
+    'Slim',
+    'Walker',
+    'Warlock',
+    'Zed',
+    'Zeus'
+]
+XCOM_FEMALE_NICKNAMES_SNIPER = [
+    'Athena',
+    'Baroness',
+    'Black Widow',
+    'Lady Grey',
+    'Raven',
+    'Witchy'
+]
+XCOM_UNISEX_NICKNAMES_SUPPORT = [
+    'Angel',
+    'Axle',
+    'Bonus',
+    'Cargo',
+    'Combo',
+    'Congo',
+    'Doc',
+    'Fast Lane',
+    'Missionary',
+    'Ouija',
+    'Pox',
+    'Prophet',
+    'Rogue',
+    'Saturn',
+    'Scarecrow',
+    'Scotch',
+    'Sentinel',
+    'Shield',
+    'Skinner',
+    'Smokes',
+    'Stacks',
+    'Strings',
+    'Vita',
+    'Voodoo',
+    'Whiskey'
+]
+XCOM_MALE_NICKNAMES_SUPPORT = [
+    'Ace',
+    'Atlas',
+    'Bishop',
+    'Deacon',
+    'Freud',
+    'Hitch',
+    'Magic Man',
+    'Mr. Clean',
+    'Padre',
+    'Pops',
+    'Romeo',
+    'Santa'
+]
+XCOM_FEMALE_NICKNAMES_SUPPORT = [
+    'Cookie',
+    'Gypsy',
+    'Kitty',
+    'Pixie',
+    'Vixen'
+]
+XCOM_MALE_NICKNAMES_MEC = [
+    'Big Daddy',
+    'Bolts',
+    'Caliban',
+    'Chip',
+    'Clank',
+    'Data',
+    'Deep Teal',
+    'Forklift',
+    'Golem',
+    'Marvin',
+    'Murphy',
+    'Olivaw',
+    'Robby',
+    'Ryle',
+    'Stick',
+    'Talos',
+    'Tik-Tok',
+    'Tin Can',
+    'Vulcan'
+]
+XCOM_FEMALE_NICKNAMES_MEC = [
+    'Beeps'
+    'Big Mommy'
+    'Freya'
+    'Friday'
+    'Gadget'
+    'Gizmo'
+    'Hadaly'
+    'Iris'
+    'Maya'
+    'Molly'
+    'Number Six'
+    'Orianna'
+    'Rosie'
+    'Vanessa'
+    'Vesta'
+]
 bradford = ["CLOSE RANGE?!","WHAT HAVE YOU DONE?!","COMMANDER!","WE'RE PICKING UP MULTIPLE CONTACTS!","CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!"]
 VAN_DOORN_QUOTES = [
     "I'm the Ops team! I'll get over there!",
@@ -233,20 +540,27 @@ class Unit:
 
 
 class Soldier(Unit):
-    def __init__(self, sid, hp, aim, mobility, rank, firstname, lastname,
+    def __init__(self, sid, sex, hp, aim, mobility, rank, firstname, lastname,
                  armour, weapon, items):
         super().__init__(hp, aim, mobility, rank, firstname, lastname, armour,
                          weapon, items)
         self.sid = sid
+        self.sex = sex
         self.xp = 0
         self.aimpenalty = 0
+        self.nickname = None
 
     def __str__(self):
-        return XCOM_RANKS[self.nrank] + ' ' + self.lastname
-
+        middle = ' '
+        if self.nickname:
+            middle = " '" + self.nickname + "' "
+        return XCOM_RANKS[self.nrank] + middle + self.lastname
 
     def print_summary(self):
-        p(0, XCOM_RANKS[self.nrank] + ' ' + self.firstname + ' '              \
+        middle = ' '
+        if self.nickname:
+            middle = " '" + self.nickname + "' "
+        p(0, XCOM_RANKS[self.nrank] + ' ' + self.firstname + middle           \
           + self.lastname + ' - ' + str(self.hp) + ' HP' + ' - '              \
           + str(self.aim) + ' Aim')
         p(0, 'Items: ' + self.weapon.name + ', ' + items[self.items[0]] + ', '\
@@ -269,20 +583,30 @@ def create_soldier(sid):
     if rd.randrange(1,100) < 5:
         if rd.randrange(0, 2) == 0:
             if not have_bradford:
-                return Soldier(sid, 6, 100, mobility, RANK_CENTRAL_OFFICER,   \
-                               '', 'Bradford', armour, BradfordsPistol(),     \
-                               items)
+                return Soldier(sid, SEX_MALE, 6, 100, mobility,               \
+                               RANK_CENTRAL_OFFICER, '', 'Bradford', armour,  \
+                               BradfordsPistol(), items)
         if not have_vdoorn:
-            return Soldier(sid, 6, 80, mobility, RANK_GENERAL, 'Peter',       \
-                           VAN_DOORN, armour, BallisticRifle(), items)
+            return Soldier(sid, SEX_MALE, 6, 80, mobility, RANK_GENERAL,      \
+                           'Peter', VAN_DOORN, armour, BallisticRifle(), items)
     weapon = None
     if rd.randrange(0, 2) == 0:
         weapon = BallisticRifle()
     else:
         weapon = BallisticCarbine()
-    return Soldier(sid, rd.randrange(3, 6), rd.randrange(50, 75), mobility,   \
-                   RANK_ROOKIE, rd.choice(fnm), rd.choice(lnm), armour,       \
-                   weapon, items)
+    sex = None
+    if rd.randrange(0, 2) == 0:
+        sex = SEX_FEMALE
+    else:
+        sex = SEX_MALE
+    name = None
+    if sex == SEX_FEMALE:
+        name = rd.choice(XCOM_FEMALE_FIRSTNAME)
+    else:
+        name = rd.choice(XCOM_MALE_FIRSTNAME)
+    return Soldier(sid, sex, rd.randrange(3, 6), rd.randrange(50, 75),        \
+                   mobility, RANK_ROOKIE, name, rd.choice(XCOM_LASTNAME),     \
+                   armour, weapon, items)
 
 
 #we define the aliens here. they are initialised as sectoids but this can be changed with the definitions, such
@@ -712,7 +1036,7 @@ def checkPlayerDead():
 #levels up
 def checkXP():
     was_promoted = False
-    if soldier.xp >= 25 and soldier.nrank < RANK_SQUADDIE and soldier.xp < 100:
+    if soldier.xp >= 25 and soldier.nrank < RANK_SQUADDIE:
         soldier.nrank = RANK_SQUADDIE
         soldier.hp += 1
         soldier.aim += 2
@@ -720,7 +1044,7 @@ def checkXP():
         drop()
         drop()
         was_promoted = True
-    elif soldier.xp >= 100 and soldier.nrank < RANK_CORPORAL and soldier.xp < 300:
+    elif soldier.xp >= 100 and soldier.nrank < RANK_CORPORAL:
         soldier.nrank = RANK_CORPORAL
         soldier.hp += 1
         soldier.aim += 2
@@ -728,7 +1052,27 @@ def checkXP():
         drop()
         drop()
         was_promoted = True
-    elif soldier.xp >= 300 and soldier.nrank < RANK_SERGEANT and soldier.xp < 900:
+    elif soldier.xp >= 300 and soldier.nrank < RANK_SERGEANT:
+        nicknames = XCOM_UNISEX_NICKNAMES_ASSAULT                             \
+                    + XCOM_UNISEX_NICKNAMES_HEAVY                             \
+                    + XCOM_UNISEX_NICKNAMES_SNIPER                            \
+                    + XCOM_UNISEX_NICKNAMES_SUPPORT
+        if soldier.sex == SEX_FEMALE:
+            nicknames += XCOM_FEMALE_NICKNAMES_ASSAULT                        \
+                         + XCOM_FEMALE_NICKNAMES_HEAVY                        \
+                         + XCOM_FEMALE_NICKNAMES_MEC                          \
+                         + XCOM_FEMALE_NICKNAMES_SNIPER                       \
+                         + XCOM_FEMALE_NICKNAMES_SUPPORT
+        else:
+            nicknames += XCOM_MALE_NICKNAMES_ASSAULT                          \
+                         + XCOM_MALE_NICKNAMES_HEAVY                          \
+                         + XCOM_MALE_NICKNAMES_MEC                            \
+                         + XCOM_MALE_NICKNAMES_SNIPER                         \
+                         + XCOM_MALE_NICKNAMES_SUPPORT
+        soldier.nickname = rd.choice(nicknames)
+        p(0, XCOM_RANKS[soldier.nrank] + ' ' + soldier.firstname + ' '        \
+          + soldier.lastname  + " earned the nickname '" + soldier.nickname   \
+          + "'")
         soldier.nrank = RANK_SERGEANT
         soldier.hp += 2
         soldier.aim += 1
@@ -736,14 +1080,14 @@ def checkXP():
         drop()
         drop()
         was_promoted = True
-    elif soldier.xp >= 900 and soldier.nrank < RANK_LIEUTENANT and soldier.xp < 1500:
+    elif soldier.xp >= 900 and soldier.nrank < RANK_LIEUTENANT:
         soldier.nrank = RANK_LIEUTENANT
         soldier.hp += 1
         soldier.aim += 1
         drop()
         drop()
         was_promoted = True
-    elif soldier.xp >= 1500 and soldier.nrank < RANK_CAPTAIN and soldier.xp < 2000:
+    elif soldier.xp >= 1500 and soldier.nrank < RANK_CAPTAIN:
         soldier.nrank = RANK_CAPTAIN
         soldier.hp += 2
         soldier.aim += 1
@@ -752,7 +1096,7 @@ def checkXP():
         drop()
         drop()
         was_promoted = True
-    elif soldier.xp >= 2000 and soldier.nrank < RANK_MAJOR and soldier.xp < 3000:
+    elif soldier.xp >= 2000 and soldier.nrank < RANK_MAJOR:
         soldier.nrank = RANK_MAJOR
         soldier.hp += 1
         soldier.aim += 1
@@ -782,7 +1126,8 @@ def getLoot(alium):
     elerium = 0
     meld = 0
     alloy = 0
-    soldier.xp += alium.nrank * abs(alium.hp)
+    # soldier.xp += alium.nrank * abs(alium.hp)
+    soldier.xp += 20
     fragments += abs(alium.hp)
     elerium += alium.nrank
     meld += 2 * alium.nrank
