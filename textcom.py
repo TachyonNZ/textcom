@@ -5,7 +5,7 @@ import random as rd
 import time as tm
 
 fnm = ["Bob","Becks","Kate","Alex","Tim","Peter","Annetta","Violet","Jeb","Bill","Rune","Jeff","Kim","Lee","Iago","Soylent","Iko","Dan","John","Pedro","Juan","Rico","David","Andrew","Wilson","James","Richard","Rocky","Adam","Megan","Shelly","Kim","Bear"]
-lnm = ["Van Doorn","Meier","Dan Voorn","Durant","Lee","Kerman","Nilsen","Possible","Fox","Vin Diern","Vern Dern","Friendly","Civilian","Snek","Advint","Firaxi","Beegle","Green","Wolf","Grills","Red","Taa","Tank","Beardly","Sherman","Herman","Nerman","Nuton"]
+lnm = ["Meier","Dan Voorn","Durant","Lee","Kerman","Nilsen","Possible","Fox","Vin Diern","Vern Dern","Friendly","Civilian","Snek","Advint","Firaxi","Beegle","Green","Wolf","Grills","Red","Taa","Tank","Beardly","Sherman","Herman","Nerman","Nuton"]
 bradford = ["CLOSE RANGE?!","WHAT HAVE YOU DONE?!","COMMANDER!","WE'RE PICKING UP MULTIPLE CONTACTS!","CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!"]
 VAN_DOORN_QUOTES = [
     "I'm the Ops team! I'll get over there!",
@@ -131,15 +131,35 @@ class Soldier():
     XP = 0
     alive = 1
     aimpenalty = 0
+
     def __init__(self):
-        self.fName = rd.choice(fnm)
+        if rd.randrange(1,100) < 5:
+            if rd.randrange(1, 3) == 1:
+                # CO Bradford
+                self.HP = 6
+                self.fName = "Central Officer"
+                self.lName = "Bradford"
+                self.aim = 100
+                self.weapon = 4
+                self.ammo = 999
+                self.dmgp = 5
+            else:
+                # Gen. Van Doorn
+                self.HP = 6
+                self.rank = "General"
+                self.fName = "Peter"
+                self.lName = VAN_DOORN
+                self.aim = 100
+                self.weapon = 0
+        else:
+            self.HP = rd.randrange(3,6)
+            self.fName = rd.choice(fnm)
+            self.lName =  rd.choice(lnm)
+            self.aim = rd.randrange(50,75)
+            self.weapon = rd.randrange(0,2)
+            self.rank = "Rookie"
         self.sID = len(barracks)
-        self.lName =  rd.choice(lnm)
-        self.rank = "Rookie"
-        self.HP = rd.randrange(3,6)
-        self.aim = rd.randrange(50,75)
         self.mobility = rd.randrange(11,16)
-        self.weapon = rd.randrange(0,2)
         if self.weapon == 0:
             self.ammo = 4
             self.dmgp = 3
@@ -147,20 +167,12 @@ class Soldier():
             self.ammo = 3
             self.dmgp = 2
         self.secondary = rd.randrange(0,2)
-        
+
         self.dmgs = 2
         self.item = [(rd.randrange(0,3)),(rd.randrange(0,2))]
         self.armour = "BDY" #body armour
-        if rd.randrange(1,100) < 5:
-            self.HP = 6
-            self.fName = "Central Officer"
-            self.lName = "Bradford"
-            self.aim = 100
-            self.weapon = 4
-            self.ammo = 999
-            self.dmgp = 5
-            
-        
+
+
     def summon(self):
         p(0,self.rank+" "+self.fName+" "+self.lName+" -  "+str(self.HP)+" HP"+" - "+str(self.aim)+ " Aim")
         p(0,"Items: "+priwep[self.weapon]+", "+items[self.item[0]]+", "+items[self.item[1]])
