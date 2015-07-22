@@ -1126,8 +1126,7 @@ def getLoot(alium):
     elerium = 0
     meld = 0
     alloy = 0
-    # soldier.xp += alium.nrank * abs(alium.hp)
-    soldier.xp += 20
+    soldier.xp += alium.nrank * abs(alium.hp)
     fragments += abs(alium.hp)
     elerium += alium.nrank
     meld += 2 * alium.nrank
