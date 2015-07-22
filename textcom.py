@@ -1,4 +1,5 @@
 #By /u/TachyonNZ
+# Van Doorn by /u/net_goblin
 #TEXT-COM, V0.1
 
 import random as rd
@@ -186,8 +187,8 @@ class Soldier():
         if soldier.weapon == 3:
             self.dmgp = 7
             self.ammo = 5
-            
-            
+
+
 #we define the aliens here. they are initialised as sectoids but this can be changed with the definitions, such
 #as thinman(), to convert the alien to a thinman
 class Alien():
@@ -281,7 +282,7 @@ class Alien():
     def refresh(self):
         self.HP += self.rank*round(rd.random()*2)
         self.aim  +=  self.rank*round(rd.random()*2)
-        
+
     def summon(self):
         p(0,aranks[self.rank]+" "+self.fName+" "+self.lName+" - "+str(self.HP)+" HP"+" - "+str(self.aim)+" Aim")
         p(0,"Items: "+apriwep[self.weapon]+", "+aitems[self.item1])
@@ -372,7 +373,7 @@ def playerTurn():
             while out == False:
                 action = a("int","#")
             out = False
-            
+
             try:
                 sel = invac[int(action)-1]
             except ( IndexError ):
@@ -380,8 +381,8 @@ def playerTurn():
                     action = a("int","#")
                 out = False
             sel = invac[int(action)-1]
-            
-            
+
+
             if sel == "Reload":
                 if soldier.weapon == 0:
                     soldier.ammo = 4
@@ -508,7 +509,7 @@ def playerTurn():
                     except ( IndexError ):
                         i = 0 #reset the loop
                 #the grenade only affects some of the aliens in the room, but is guaranteed to hit at least 1
-                #it's not a bug, it's a feature        
+                #it's not a bug, it's a feature
     #ends turn by default
 
 
@@ -569,7 +570,7 @@ def nade(alium):
     p(0,"3 damage!")
     soldier.HP -= 3
     checkPlayerDead()
-                
+
 
 def ow(alium):
     p(0,alium.name()+" went on overwatch!")
@@ -596,7 +597,7 @@ def alienTurn():
             cthplayer = alium.aim - soldier.cover
             if alium.item1 == 2: #focusing lens
                 cthplayer += 20
-            
+
             if alium.cover < 20:
                 if rd.randrange(0,100) < 80:
                     move(alium,40)
@@ -616,13 +617,13 @@ def alienTurn():
                     else:
                         move(alium,20)
                     #randomly moves to different cover sometimes
-                    
+
                 else:
                     if rd.randrange(0,100) < 20:
                         ow(alium)
                     else:
                         fire(alium,cthplayer)
-                        
+
             else:
                 if cthplayer > 80 + rd.randrange(0,20):
                     fire(alium,cthplayer)
@@ -631,7 +632,7 @@ def alienTurn():
                 else:
                     ow(alium)
 
-                    
+
 def checkDead(alium):
     if alium.HP <= 0:
         p(0,alium.name()+" died!")
@@ -654,7 +655,7 @@ def checkPlayerDead():
         soldier.alive = 0
         quit
         #doesn't want to stop the whole game straight away for some reason
-   
+
 #levels up
 def checkXP():
     if soldier.XP >= 25 and not soldier.rank == "Squaddie" and soldier.XP < 100:
@@ -718,13 +719,13 @@ def checkXP():
         drop()
         p(0,"LEVEL UP! "+soldier.deets())
 
-        
+
 def getLoot(alium):
     fragments = 0
     elerium = 0
     meld = 0
     alloy = 0
-    soldier.XP += alium.rank*abs(alium.HP) 
+    soldier.XP += alium.rank*abs(alium.HP)
     fragments += abs(alium.HP)
     elerium += alium.rank
     meld += 2*alium.rank
@@ -743,16 +744,16 @@ def getLoot(alium):
     return [fragments, elerium, meld, alloy]
     #gets some sweet sweet loot from those aliens
 
-            
 
-        
+
+
 def displayOptions():
     global invac
     global invacref
     global AP
     invac = []
     invacref = []
-    
+
     if soldier.ammo != 0:
         if AP > 5:
             if soldier.weapon == 0: #if we have the rifle
@@ -797,9 +798,9 @@ def displayOptions():
         if AP > 9:
             invac.append("Meds")
             p(len(invac),"(+4HP)(10AP) Use Nano Serum")
-            
+
     #other default actions which are almost always available
-    
+
     if AP > 2:
         invac.append("Reposition")
         p(len(invac),"(3AP) Reposition")
@@ -925,7 +926,7 @@ for i in range(30):
             mutate(i)
             x = rd.choice(room[i])
             mutate(i)
-            
+
 room[30] = []
 x = Alien()
 x.muton()
@@ -936,7 +937,7 @@ x.HP = 20
 room.append([])
 room[31] = []
 #generates the pods in each room
-    
+
 
 
 roomNo = 0
@@ -949,7 +950,7 @@ while soldier.alive == 1:
         p(0,soldier.deets()+" is out of AP!")
         print("Alien Activity!")
         s(2)
-        
+
         if soldier.alive == 1:
             alienTurn()
     except ( ValueError or IndexError ):
