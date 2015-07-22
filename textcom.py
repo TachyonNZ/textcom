@@ -36,8 +36,40 @@ floaterlName = ["Meyer","Mleadeer","Peters","Prince","Vos","Wolf","Schwarz","Fra
 mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy","Jimmy","Hank",""]
 mutonlName = ["Von Mooter","The Muton","Hugan","Jankins","Jefferson"]
 
-#when a soldier shoots at an alien
-aranks = {0:"Peon",1:"Soldier",2:"Trooper",3:"Officer",4:"Commander",5:"Overseer",6:"Supreme Commander",7:"Uber",8:"Trancendant"}
+RANK_ROOKIE = 0
+RANK_SQUADDIE = 1
+RANK_CORPORAL = 2
+RANK_SERGEANT = 3
+RANK_LIEUTENANT = 4
+RANK_CAPTAIN = 5
+RANK_MAJOR = 6
+RANK_COLONEL = 7
+RANK_GENERAL = 8 # only for Van Doorn
+RANK_CENTRAL_OFFICER = 9 # only for Bradford
+XCOM_RANKS = [
+    'Rookie',
+    'Squaddie',
+    'Corporal',
+    'Sergeant',
+    'Lieutenant',
+    'Captain',
+    'Major',
+    'Colonel',
+    # Special ranks
+    'General',
+    'Central Officer'
+]
+ALIEN_RANKS = [
+    "Peon",
+    "Soldier",
+    "Trooper",
+    "Officer",
+    "Commander",
+    "Overseer",
+    "Supreme Commander",
+    "Uber",
+    "Trancendant"
+]
 
 #when a soldier shoots at an alien
 retort = ("Suck on this!","Eat this!","Pick on someone your own size!","Take this!","Welcome to Earth!")
@@ -133,8 +165,6 @@ class AlienWeapon(Weapon):
         return self.elerium, self.fragments
 
 
-# XCOM weapons
-
 class BallisticPistol(Weapon):
     def __init__(self):
         super().__init__('Ballistic Pistol', 2, 10)
@@ -180,65 +210,20 @@ class BradfordsPistol(Weapon):
         super().__init__("Bradford's Pistol", 5, 999)
 
 
-#here we define all the variables for a soldier (could probably all be stored in an array)
-class Soldier():
-    def __init__(self, sid):
-        if rd.randrange(1,100) < 5:
-            if rd.randrange(0, 2) == 0:
-                # CO Bradford
-                self.HP = 6
-                self.rank = "Central Officer"
-                self.lName = "Bradford"
-                self.aim = 100
-                self.weapon = BradfordsPistol()
-            else:
-                # Gen. Van Doorn
-                self.HP = 6
-                self.rank = "General"
-                self.fName = "Peter"
-                self.lName = VAN_DOORN
-                self.aim = 100
-                self.weapon = BallisticRifle()
-        else:
-            self.HP = rd.randrange(3,6)
-            self.fName = rd.choice(fnm)
-            self.lName =  rd.choice(lnm)
-            self.aim = rd.randrange(50,75)
-            if rd.randrange(0, 2) == 0:
-                self.weapon = BallisticRifle()
-            else:
-                self.weapon = BallisticCarbine()
-            self.rank = "Rookie"
-        self.sID = sid
-        self.mobility = rd.randrange(11,16)
-
-        if rd.randrange(0, 2) == 0:
-            self.secondary = BallisticPistol()
-        else:
-            self.secondary = Autopistol()
-
-        self.item = [(rd.randrange(0,3)),(rd.randrange(0,2))]
-        self.armour = "BDY" #body armour
+class Unit:
+    def __init__(self, hp, aim, mobility, nrank, firstname, lastname,
+                 armour, weapon, items):
+        self.hp = hp
+        self.aim = aim
+        self.mobility = mobility
+        self.nrank = nrank
+        self.firstname = firstname
+        self.lastname = lastname
+        self.weapon = weapon
+        self.items = items
         self.cover = 0
-        self.overwatch = 0
-        self.XP = 0
+        self.overwatch = False
         self.alive = True
-        self.aimpenalty = 0
-
-    def summon(self):
-        p(0,self.rank+" "+self.fName+" "+self.lName+" -  "+str(self.HP)+" HP"+" - "+str(self.aim)+ " Aim")
-        p(0, 'Items: ' + self.weapon.name + ', ' + items[self.item[0]] + ', ' + items[self.item[1]])
-
-    def deets(self):
-        return(self.rank+" "+self.lName)
-
-    def updateWep(self):
-        if soldier.weapon == 2:
-            self.dmgp = 5
-            self.ammo = 4
-        if soldier.weapon == 3:
-            self.dmgp = 7
-            self.ammo = 5
 
     def reload(self):
         self.weapon.reload()
@@ -247,117 +232,150 @@ class Soldier():
         return self.weapon.shoot()
 
 
+class Soldier(Unit):
+    def __init__(self, sid, hp, aim, mobility, rank, firstname, lastname,
+                 armour, weapon, items):
+        super().__init__(hp, aim, mobility, rank, firstname, lastname, armour,
+                         weapon, items)
+        self.sid = sid
+        self.xp = 0
+        self.aimpenalty = 0
+
+    def __str__(self):
+        return XCOM_RANKS[self.nrank] + ' ' + self.lastname
+
+
+    def print_summary(self):
+        p(0, XCOM_RANKS[self.nrank] + ' ' + self.firstname + ' '              \
+          + self.lastname + ' - ' + str(self.hp) + ' HP' + ' - '              \
+          + str(self.aim) + ' Aim')
+        p(0, 'Items: ' + self.weapon.name + ', ' + items[self.items[0]] + ', '\
+          + items[self.items[1]])
+
+
+# Global variables to prevent duplicate hero soldiers
+have_bradford = False
+have_vdoorn = False
+
+
+def create_soldier(sid):
+    global have_bradford
+    global have_vdoorn
+    # sid, hp, aim, mobility, rank, firstname, lastname, armour, weapon, items
+
+    items = [(rd.randrange(0, 3)), (rd.randrange(0, 2))]
+    mobility = rd.randrange(11, 16)
+    armour = 'BDY'
+    if rd.randrange(1,100) < 5:
+        if rd.randrange(0, 2) == 0:
+            if not have_bradford:
+                return Soldier(sid, 6, 100, mobility, RANK_CENTRAL_OFFICER,   \
+                               '', 'Bradford', armour, BradfordsPistol(),     \
+                               items)
+        if not have_vdoorn:
+            return Soldier(sid, 6, 80, mobility, RANK_GENERAL, 'Peter',       \
+                           VAN_DOORN, armour, BallisticRifle(), items)
+    weapon = None
+    if rd.randrange(0, 2) == 0:
+        weapon = BallisticRifle()
+    else:
+        weapon = BallisticCarbine()
+    return Soldier(sid, rd.randrange(3, 6), rd.randrange(50, 75), mobility,   \
+                   RANK_ROOKIE, rd.choice(fnm), rd.choice(lnm), armour,       \
+                   weapon, items)
+
+
 #we define the aliens here. they are initialised as sectoids but this can be changed with the definitions, such
 #as thinman(), to convert the alien to a thinman
-class Alien():
-    species = ""
-    aID = 0
-    rank  =""
-    fName = ""
-    lName = ""
-    HP = 0
-    aim = 0
-    mobility = 0
-    secondary = ""
-    item1 = ""
-    item2 = ""
-    armour = 0
-    dmgp = 0
-    dmgs = 0
-    alive = False
-    cover = 0
-    overwatch = 0
+class Alien(Unit):
+    # self, hp, aim, mobility, rank, firstname, lastname, armour, weapon, items
     def __init__(self):
+        super().__init__(0, 0, 0, '', '', '', 'BDY', None, [])
         self.species = "Sectoid"
-        self.fName = rd.choice(sectoidfName)
+        self.firstname = rd.choice(sectoidfName)
         self.aID = len(pod)
-        self.lName =  rd.choice(sectoidlName)
-        self.rank = round(rd.randrange(0+round(roomNo/20),2))
-        self.HP = 2+self.rank
-        self.aim = rd.randrange(50,75)+self.rank
-        self.mobility = rd.randrange(9,13)+self.rank
+        self.lastname = rd.choice(sectoidlName)
+        self.nrank = round(rd.randrange(0+round(roomNo/20),2))
+        self.hp = 2 + self.nrank
+        self.aim = rd.randrange(50, 75) + self.nrank
+        self.mobility = rd.randrange(9, 13) + self.nrank
         self.weapon = PlasmaCarbine()
         self.secondary = PlasmaPistol()
         self.item1 = rd.randrange(0,3)
-        self.armour = "BDY" #body armour
         self.alive = True
     def thinman(self):
         self.ammo = 1
         self.species = "Thin Man"
-        self.fName = rd.choice(thinfName)
+        self.firstname = rd.choice(thinfName)
         self.aID = len(pod)
-        self.lName = rd.choice(thinlName)
-        self.rank = round(rd.randrange(0,3))
-        self.HP = 3+self.rank
-        self.aim = rd.randrange(60,80)+self.rank
-        self.mobility = rd.randrange(12,15)+self.rank
+        self.lastname = rd.choice(thinlName)
+        self.nrank = round(rd.randrange(0, 3))
+        self.hp = 3 + self.nrank
+        self.aim = rd.randrange(60, 80) + self.nrank
+        self.mobility = rd.randrange(12, 15) + self.nrank
         self.item1 = rd.randrange(0,3)
         self.armour = "BDY" #body armour
         self.alive = True
     def floater(self):
         self.ammo = 1
         self.species = "Floater"
-        self.fName = rd.choice(floaterfName)
+        self.firstname = rd.choice(floaterfName)
         self.aID = len(pod)
-        self.lName = rd.choice(floaterlName)
-        self.rank = round(rd.randrange(0+round(roomNo/10),3))
+        self.lastname = rd.choice(floaterlName)
+        self.nrank = round(rd.randrange(0 + round(roomNo / 10), 3))
         self.item1 = rd.randrange(0,3)
-        self.HP = 4+self.rank
-        self.aim = rd.randrange(50,70)+self.rank
-        self.mobility = rd.randrange(12,15)+self.rank
+        self.hp = 4 + self.nrank
+        self.aim = rd.randrange(50, 70) + self.nrank
+        self.mobility = rd.randrange(12, 15) + self.nrank
         self.armour = "BDY" #body armour
         self.alive = True
     def muton(self):
         self.ammo = 1
         self.species = "Muton"
-        self.fName = rd.choice(mutonfName)
+        self.firstname = rd.choice(mutonfName)
         self.aID = len(pod)
-        self.lName = rd.choice(mutonlName)
-        self.rank = round(rd.randrange(0+round(roomNo/10),3))
+        self.lastname = rd.choice(mutonlName)
+        self.nrank = round(rd.randrange(0 + round(roomNo / 10), 3))
         self.item1 = rd.randrange(0,3)
-        self.HP = 8+self.rank
-        self.aim = rd.randrange(50,60)+self.rank
-        self.mobility = rd.randrange(10,12)+self.rank
+        self.hp = 8 + self.nrank
+        self.aim = rd.randrange(50, 60) + self.nrank
+        self.mobility = rd.randrange(10, 12) + self.nrank
         self.weapon = PlasmaRifle()
         self.armour = "BDY" #body armour
         self.alive = True
     def refresh(self):
-        self.HP += self.rank*round(rd.random()*2)
-        self.aim  +=  self.rank*round(rd.random()*2)
+        self.hp += self.nrank * round(rd.random() * 2)
+        self.aim  +=  self.nrank * round(rd.random() * 2)
 
-    def summon(self):
-        p(0,aranks[self.rank]+" "+self.fName+" "+self.lName+" - "+str(self.HP)+" HP"+" - "+str(self.aim)+" Aim")
-        p(0, 'Items: ' + self.weapon.name + ', ' + aitems[self.item1])
-    #used if we want to get valuable data about an alien
-    def name(self):
-        return (" ("+self.species+") "+aranks[self.rank]+" "+self.fName+" "+self.lName)
     #gives us names for when we reference the alien in game
-    def deets(self, chance):
-        return (aranks[self.rank]+" "+self.fName+" "+self.lName+" - "+str(self.HP)+" HP - "+ str(chance) +"%")
+    def __str__(self):
+        return '(' + self.species + ') ' + ALIEN_RANKS[self.nrank] + ' '      \
+               + self.firstname + self.lastname
+
     #gives us tactical information, like HP and hit chance
-
-    def reload(self):
-        self.weapon.reload()
-
-    def shoot(self):
-        return self.weapon.shoot()
+    def tactical_info(self, chance):
+        return (ALIEN_RANKS[self.nrank] + ' ' + self.firstname + ' '          \
+                + self.lastname + ' - ' + str(self.hp) + ' HP - '             \
+                + str(chance) + '%')
 
 
+#scatters the aliens in a room, some won't find any cover.
 def scatter(roomNo):
     cover = ["Full","Full","Full","Half","Half","Half","Half","Half","Half","No"]
     covernumber = [40,40,40,20,20,20,20,20,20,-10]
     for i in range(len(room[roomNo])):
         room[roomNo][i].cover = rd.choice(covernumber)
         if not room[roomNo][i].cover == -10:
-            p(0,room[roomNo][i].name()+" moves to "+cover[covernumber.index(room[roomNo][i].cover)]+" cover!")
+            p(0, str(room[roomNo][i]) + ' moves to '                          \
+              + cover[covernumber.index(room[roomNo][i].cover)] + ' cover!')
         else:
-            p(0,room[roomNo][i].name()+" can't find any cover!")
-#scatters the aliens in a room, some won't find any cover.
+            p(0, str(room[roomNo][i]) + " can't find any cover!")
 
+
+#could probably be merged in with scatter(). Tells you that you've seen an alien
 def checkspot(roomNo):
     for i in range(len(room[roomNo])):
-        p(0,room[roomNo][i].name()+" spotted!")
-#could probably be merged in with scatter(). Tells you that you've seen an alien
+        p(0, str(room[roomNo][i]) + ' spotted!')
 
 
 #ah, the player's turn.
@@ -372,7 +390,7 @@ def playerTurn():
     AP = soldier.mobility
     soldier.overwatch = 0
     while AP > 0 and soldier.alive == True: #while the player has spare action points left
-        p(0,"HP - "+str(soldier.HP))
+        p(0,"HP - "+str(soldier.hp))
         p(0,"AP - "+str(AP))
         #displays stats
         if len(room[roomNo]) == 0:
@@ -384,9 +402,9 @@ def playerTurn():
                 #until they enter valid text, see a(form,q) for moer information
             out = False
             if action == "1":
-                if soldier.lName == "Bradford":
+                if soldier.lastname == "Bradford":
                     p(spk, "Commander! I advise you to reconsider!")
-                elif soldier.lName == VAN_DOORN:
+                elif soldier.lastname == VAN_DOORN:
                     p(spk, "I'll get over there!")
                 else:
                     p(spk, "Roger that, moving up!")
@@ -395,10 +413,10 @@ def playerTurn():
                 checkspot(roomNo)
                 scatter(roomNo)
                 if rd.randrange(0,100) < 30:
-                    p(0,soldier.deets()+" is in FULL cover.")
+                    p(0, str(soldier) + ' is in FULL cover.')
                     soldier.cover = 40
                 else:
-                    p(0,soldier.deets()+" is in HALF cover.")
+                    p(0, str(soldier) + ' is in HALF cover.')
                     soldier.cover = 20
                 playerTurn()
             if action == "2":
@@ -427,9 +445,9 @@ def playerTurn():
                 #depending on what weapon the player has, they will get a certain amount of ammo
                 AP -= 8
             if sel == "Overwatch":
-                if soldier.lName == "Bradford":
+                if soldier.lastname == "Bradford":
                     p(spk, "Keep your eyes peeled!")
-                elif soldier.lName == VAN_DOORN:
+                elif soldier.lastname == VAN_DOORN:
                     p(spk, "You coming down here or what?")
                 else:
                     p(spk, "Got it, on Overwatch.")
@@ -442,23 +460,23 @@ def playerTurn():
                 checkForOverwatch("Alium",0)
                 #if any aliens are on overwatch, check and be shot at if they are
                 soldier.cover = 40
-                if soldier.lName == "Bradford":
+                if soldier.lastname == "Bradford":
                     p(spk, "Moving to...wait...that's CLOSE RANGE!")
-                elif soldier.lName == VAN_DOORN:
+                elif soldier.lastname == VAN_DOORN:
                     p(spk, "Come on! I won't go down without a fight.")
                 else:
                     p(spk, "Moving to Full cover!")
                 if rd.randrange(0,100) < 50:
                     alium = rd.choice(room[roomNo])
-                    p(0,alium.name()+" is flanked!")
+                    p(0, str(alium) + 'is flanked!')
                     alium.cover = 0
                 #chance to flank an alien
 
             if sel == "Meds":
                 AP -= 10
                 print("HP restored.")
-                soldier.HP += 4
-                soldier.item.pop(soldier.item.index(1))
+                soldier.hp += 4
+                soldier.items.pop(soldier.items.index(1))
                 #heals soldier but consumes the item
             if sel == "Hunker Down":
                 soldier.overwatch = 0
@@ -470,9 +488,9 @@ def playerTurn():
             if sel in room[roomNo]: #if sel is an Alien() pointer
                 AP -= 6
                 damage = soldier.shoot()
-                if soldier.lName == "Bradford":
+                if soldier.lastname == "Bradford":
                     p(spk, rd.choice(bradford))
-                elif soldier.lName == VAN_DOORN:
+                elif soldier.lastname == VAN_DOORN:
                     p(spk, rd.choice(VAN_DOORN_QUOTES))
                 else:
                     p(spk, rd.choice(retort))
@@ -484,7 +502,7 @@ def playerTurn():
                 else:
                     p(0,"*Whap-whap-whap*")
                 chance = (soldier.aim)-(sel.cover)
-                if 2 in soldier.item: #scope
+                if 2 in soldier.items: #scope
                     chance += 0
                 # Carbines get an aim bonus
                 if type(soldier.weapon) is BallisticCarbine \
@@ -492,7 +510,7 @@ def playerTurn():
                     chance += 10
                 roll = rd.randrange(0,100)
                 if roll <= chance+10:
-                    sel.HP -= damage
+                    sel.hp -= damage
                     p(0,str(damage)+" damage!")
                     fragments += getLoot(sel)[0]
                     elerium += getLoot(sel)[1]
@@ -505,12 +523,12 @@ def playerTurn():
                 AP -= 10
                 p(0,"BAM!")
                 #grenade, obviously
-                soldier.item.pop(soldier.item.index(0))
+                soldier.items.pop(soldier.items.index(0))
                 affected = room[roomNo]
                 for i in range(len(affected)+1):
                     try:
                         alium = affected[i]
-                        alium.HP -= 2
+                        alium.hp -= 2
                         alium.cover = 0
                         fragments += getLoot(alium)[0]
                         elerium += getLoot(alium)[1]
@@ -525,12 +543,12 @@ def playerTurn():
                 AP -= 15
                 p(0,"**BLAM!**")
                 #grenade, obviously
-                soldier.item.pop(soldier.item.index(3))
+                soldier.items.pop(soldier.items.index(3))
                 affected = room[roomNo]
                 for i in range(len(affected)+1):
                     try:
                         alium = affected[i]
-                        alium.HP -= 4
+                        alium.hp -= 4
                         alium.cover = 0
                         fragments += getLoot(alium)[0]
                         elerium += getLoot(alium)[1]
@@ -550,13 +568,13 @@ def checkForOverwatch(who,getalium):
             alium = room[roomNo][i]
             cthplayer = alium.aim - soldier.cover + 10
             if alium.overwatch == 1:
-                p(0,alium.name()+" reacts!")
+                p(0, str(alium) + ' reacts!')
                 if alium.item1 == 2:
                     cthplayer += 10
                 if rd.randrange(0,100) < cthplayer:
                     dmg = alium.shoot()
                     p(0,str(dmg)+" damage!")
-                    soldier.HP -= dmg
+                    soldier.hp -= dmg
                     checkPlayerDead()
                     #did it kill the player?
                 else:
@@ -566,16 +584,16 @@ def checkForOverwatch(who,getalium):
         alium = getalium
         cth = soldier.aim - alium.cover + 10
         if soldier.overwatch == 1:
-                p(0,soldier.deets()+" reacts!")
+                p(0, str(soldier) + ' reacts!')
                 dmg = soldier.shoot()
-                if 2 in soldier.item:
+                if 2 in soldier.items:
                     cth += 10
                 if rd.randrange(0,100) < cth:
                     p(0,str(dmg)+" damage!")
-                    alium.HP -= dmg
+                    alium.hp -= dmg
                     checkDead(alium)
                 else:
-                    if soldier.lName == "Bradford":
+                    if soldier.lastname == "Bradford":
                         p(spk,"How did I miss that?!")
                     else:
                         p(spk,"Shot failed to connect!")
@@ -583,11 +601,11 @@ def checkForOverwatch(who,getalium):
 
 
 def fire(alium,cthplayer):
-    p(0,alium.name()+" fires at "+soldier.deets()+"("+str(cthplayer)+"%)")
+    p(0, str(alium) + ' fires at ' + str(soldier) + '(' + str(cthplayer) + '%)')
     dmg = alium.shoot()
     if rd.randrange(0,100) < cthplayer:
         p(0,str(dmg)+" damage!")
-        soldier.HP -= dmg
+        soldier.hp -= dmg
         checkPlayerDead()
         #did you kill the player, alien?
     else:
@@ -595,25 +613,25 @@ def fire(alium,cthplayer):
 
 
 def nade(alium):
-    p(0,alium.name()+" uses Alien Grenade!")
+    p(0, str(alium) + ' uses Alien Grenade!')
     p(0,"**BLAM!**")
     alium.item1 = 999
     #sets the aliens item to 'none', no more grenades for you
     p(0,"3 damage!")
-    soldier.HP -= 3
+    soldier.hp -= 3
     checkPlayerDead()
 
 
 def ow(alium):
-    p(0,alium.name()+" went on overwatch!")
+    p(0, str(alium) + ' went on overwatch!')
     alium.overwatch = 1
 
 
 def move(alium,cover):
     if cover == 40:
-        p(0,alium.name()+" runs to Full cover!") #if an alien has no cover, it will run to full cover. same goes if it's flanked
+        p(0, str(alium) + ' runs to Full cover!') #if an alien has no cover, it will run to full cover. same goes if it's flanked
     elif cover == 20:
-        p(0,alium.name()+" runs to Half cover!")
+        p(0, str(alium) + ' runs to Half cover!')
     checkForOverwatch("Soldier",alium)
     alium.cover = cover
 
@@ -666,8 +684,8 @@ def alienTurn():
 
 
 def checkDead(alium):
-    if alium.HP <= 0:
-        p(0,alium.name()+" died!")
+    if alium.hp <= 0:
+        p(0, str(alium) + ' died!')
         getLoot(alium)
         drop()
         checkXP()
@@ -676,15 +694,16 @@ def checkDead(alium):
 
 
 def checkPlayerDead():
-    if soldier.HP <= 0:
-        p(0,soldier.deets()+" was killed!")
+    if soldier.hp <= 0:
+        p(0, str(soldier) + ' was killed!')
         p("Bradford","Commander, our unit was killed.")
         p("Bradford","We were able to recover some materials, however.")
         print("Fragments:",fragments)
         print("Elerium:",elerium)
         print("Meld:",meld)
         print("Alloy:",alloy)
-        print("Total Score:",(fragments+elerium+meld+alloy+soldier.XP+roomNo))
+        print('Total Score: ' + str(fragments + elerium + meld + alloy        \
+                                 + soldier.xp + roomNo))
         soldier.alive = False
         quit
         #doesn't want to stop the whole game straight away for some reason
@@ -692,58 +711,59 @@ def checkPlayerDead():
 
 #levels up
 def checkXP():
-    if soldier.XP >= 25 and not soldier.rank == "Squaddie" and soldier.XP < 100:
-        soldier.rank = "Squaddie"
-        soldier.HP += 1
+    was_promoted = False
+    if soldier.xp >= 25 and soldier.nrank < RANK_SQUADDIE and soldier.xp < 100:
+        soldier.nrank = RANK_SQUADDIE
+        soldier.hp += 1
         soldier.aim += 2
         soldier.mobility += 1
         drop()
         drop()
-        p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 100 and not soldier.rank == "Corporal" and soldier.XP < 300:
-        soldier.rank = "Corporal"
-        soldier.HP += 1
+        was_promoted = True
+    elif soldier.xp >= 100 and soldier.nrank < RANK_CORPORAL and soldier.xp < 300:
+        soldier.nrank = RANK_CORPORAL
+        soldier.hp += 1
         soldier.aim += 2
         soldier.mobility += 1
         drop()
         drop()
-        p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 300 and not soldier.rank == "Sergeant" and soldier.XP < 900:
-        soldier.rank = "Sergeant"
-        soldier.HP += 2
+        was_promoted = True
+    elif soldier.xp >= 300 and soldier.nrank < RANK_SERGEANT and soldier.xp < 900:
+        soldier.nrank = RANK_SERGEANT
+        soldier.hp += 2
         soldier.aim += 1
         soldier.mobility += 1
         drop()
         drop()
-        p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 900 and not soldier.rank == "Lieutenant" and soldier.XP < 1500:
-        soldier.rank = "Lieutenant"
-        soldier.HP += 1
+        was_promoted = True
+    elif soldier.xp >= 900 and soldier.nrank < RANK_LIEUTENANT and soldier.xp < 1500:
+        soldier.nrank = RANK_LIEUTENANT
+        soldier.hp += 1
         soldier.aim += 1
         drop()
         drop()
-        p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 1500 and not soldier.rank == "Captain" and soldier.XP < 2000:
-        soldier.rank = "Captain"
-        soldier.HP += 2
+        was_promoted = True
+    elif soldier.xp >= 1500 and soldier.nrank < RANK_CAPTAIN and soldier.xp < 2000:
+        soldier.nrank = RANK_CAPTAIN
+        soldier.hp += 2
         soldier.aim += 1
         drop()
         drop()
         drop()
         drop()
-        p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 2000 and not soldier.rank == "Major" and soldier.XP < 3000:
-        soldier.rank = "Major"
-        soldier.HP += 1
+        was_promoted = True
+    elif soldier.xp >= 2000 and soldier.nrank < RANK_MAJOR and soldier.xp < 3000:
+        soldier.nrank = RANK_MAJOR
+        soldier.hp += 1
         soldier.aim += 1
         soldier.mobility += 1
         drop()
         drop()
         drop()
-        p(0,"LEVEL UP! "+soldier.deets())
-    elif soldier.XP >= 3000 and not soldier.rank == "Colonel":
-        soldier.rank = "Colonel"
-        soldier.HP += 1
+        was_promoted = True
+    elif soldier.xp >= 3000 and soldier.nrank < RANK_COLONEL:
+        soldier.nrank = RANK_COLONEL
+        soldier.hp += 1
         soldier.aim += 1
         drop()
         drop()
@@ -751,7 +771,9 @@ def checkXP():
         drop()
         drop()
         drop()
-        p(0,"LEVEL UP! "+soldier.deets())
+        was_promoted = True
+    if was_promoted:
+        p(0, str(soldier) + ' was promoted to ' + XCOM_RANKS[soldier.nrank])
 
 
 #gets some sweet sweet loot from those aliens
@@ -760,10 +782,10 @@ def getLoot(alium):
     elerium = 0
     meld = 0
     alloy = 0
-    soldier.XP += alium.rank*abs(alium.HP)
-    fragments += abs(alium.HP)
-    elerium += alium.rank
-    meld += 2*alium.rank
+    soldier.xp += alium.nrank * abs(alium.hp)
+    fragments += abs(alium.hp)
+    elerium += alium.nrank
+    meld += 2 * alium.nrank
     if alium.item1 == 0:
         elerium += 2
     elif alium.item1 == 1:
@@ -789,16 +811,16 @@ def displayOptions():
             for i in range(len(room[roomNo])):
                 alium = room[roomNo][i]
                 chance = (soldier.aim)-(alium.cover)
-                if 2 in soldier.item:
+                if 2 in soldier.items:
                     chance += 10
-                if 1 in soldier.item:
+                if 1 in soldier.items:
                     chance += 10
                 if chance < 0:
                     chance = 5
                 if chance > 100:
                     chance = 95
                 invac.append(alium)
-                p(len(invac),saywep+" : "+alium.deets(chance))
+                p(len(invac), saywep + ' : ' + alium.tactical_info(chance))
                 #displays a list of valid targets
         invac.append("Overwatch")
         p(len(invac),"Overwatch")
@@ -806,15 +828,15 @@ def displayOptions():
         if AP > 7:
             invac.append("Reload")
             p(len(invac),"(8AP) Reload Weapon")
-    if 0 in soldier.item:
+    if 0 in soldier.items:
         if AP > 9:
             invac.append("Frag")
             p(len(invac),"(2dmg)(10AP) Throw Frag Grenade")
-    if 3 in soldier.item:
+    if 3 in soldier.items:
         if AP > 14:
             invac.append("AlienFrag")
             p(len(invac),"(4dmg)(15AP) Throw Alien Grenade")
-    if 1 in soldier.item:
+    if 1 in soldier.items:
         if AP > 9:
             invac.append("Meds")
             p(len(invac),"(+4HP)(10AP) Use Nano Serum")
@@ -840,7 +862,7 @@ def drop():
         if itemdrop == 4:
             soldier.weapon = PlasmaRifle()
         else:
-            soldier.item.append(itemdrop)
+            soldier.items.append(itemdrop)
 
 def craft(item):
     pass
@@ -852,7 +874,7 @@ def mutate(i):
         y = options[rd.randrange(0,2)]
         if y == "Thinman":
             x.thinman()
-        x.rank += 1
+        x.nrank += 1
         x.refresh()
     elif i > 9 and i < 15:
         y = rd.choice(options)
@@ -862,8 +884,8 @@ def mutate(i):
             x.floater()
         if y == "Muton":
             x.muton()
-            x.rank -= 2
-        x.rank += 3
+            x.nrank -= 2
+        x.nrank += 3
         x.refresh()
     elif i > 14:
         y = options[rd.randrange(1,4)]
@@ -873,7 +895,7 @@ def mutate(i):
             x.floater()
         if y == "Muton":
             x.muton()
-        x.rank += 4
+        x.nrank += 4
         x.refresh()
     elif i > 16:
         y = options[rd.randrange(2,4)]
@@ -881,7 +903,7 @@ def mutate(i):
             x.muton()
         if y == "Floater":
             x.floater()
-        x.rank += 4
+        x.nrank += 4
         x.refresh()
 
 
@@ -891,13 +913,13 @@ p("Bradford", "Choose a soldier from the 3 below to go on the mission.")
 
 #generates soldiers
 for i in range(3):
-    x = Soldier(i)
+    x = create_soldier(i)
     barracks.append(x)
 
 #displays a list of the soldiers
 for i in range(len(barracks)):
     p(0,str(i+1)+": ")
-    barracks[i].summon()
+    barracks[i].print_summary()
     p(0,"")
 
 #forces you to pick only one soldier
@@ -907,10 +929,10 @@ while out == False and int(out) < len(barracks):
 out = False
 soldier = barracks[int(soldier)-1]
 
-spk = soldier.fName + " " + soldier.lName
-if soldier.lName == "Bradford":
+spk = soldier.firstname + " " + soldier.lastname
+if soldier.lastname == "Bradford":
     p(spk, "What? There must have been a mistake on the sheet, Commander! You can't send --")
-elif soldier.lName == VAN_DOORN:
+elif soldier.lastname == VAN_DOORN:
     p(spk, "I'm the Ops team?")
 else:
     p(spk, "Ready for duty, Commander!")
@@ -950,9 +972,9 @@ for i in range(30):
 room[30] = []
 x = Alien()
 x.muton()
-x.rank = 8
+x.nrank = 8
 x.refresh()
-x.HP = 20
+x.hp = 20
 
 #generates the pods in each room
 room.append([])
@@ -965,7 +987,7 @@ AP = soldier.mobility
 while soldier.alive == True:
     try:
         playerTurn()
-        p(0,soldier.deets()+" is out of AP!")
+        p(0, str(soldier) + ' is out of AP!')
         print("Alien Activity!")
         s(2)
 
