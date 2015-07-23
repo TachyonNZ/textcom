@@ -442,6 +442,7 @@ aitems = {0:"Alien Grenade",1:"Alloy Plating",2:"Focus Lens",999:"None"}
 # Cover #
 #########
 
+COVER_FLANKED = -20
 COVER_NONE = 0
 COVER_FULL = 40
 COVER_HALF = 20
@@ -1031,8 +1032,8 @@ class RepositionAction(Action):
         #chance to flank an alien
         if rd.randrange(0, 100) < 50:
             alien = rd.choice(room[roomNo])
-            p(0, str(alien) + 'is flanked!')
-            alien.cover = COVER_NONE # TODO: flanked should be worse than no cover
+            p(0, str(alien) + ' is flanked!')
+            alien.cover = COVER_FLANKED
 
 
 class UseItemAction(Action):
@@ -1371,24 +1372,31 @@ def alienTurn():
             cthplayer = (alium.aim - soldier.cover) - soldier.hunkerbonus
             if alium.item1 == 2: #focusing lens
                 cthplayer += 20
-
-            if alium.cover < 20:
-                if rd.randrange(0,100) < 80:
+            
+            
+            if alium.cover == COVER_FLANKED:
+                if rd.randrange(0,100) <= 30:
                     move(alium,40)
-                elif rd.randrange(0,100) < 40:
-                    fire(alium,cthplayer)
                 else:
                     move(alium,20)
-            if alium.cover < 40:
-                if cthplayer > 50 + rd.randrange(0,20):
+            elif alium.cover == COVER_NONE:
+                if rd.randrange(0,100) <= 80:
+                    move(alium,40)
+                elif rd.randrange(0,100) <= 40:
                     fire(alium,cthplayer)
-                elif rd.randrange(0,100) < 20:
+                else:
+        
+                    move(alium,20)
+            elif alium.cover == COVER_HALF:
+                if cthplayer >= 50 + rd.randrange(0,20):
+                    fire(alium,cthplayer)
+                elif rd.randrange(0,100) <= 20:
                     if alium.item1 == 0:
                         nade(alium)
                     else:
                         fire(alium,cthplayer)
-                elif rd.randrange(0,100) < 20:
-                    if rd.randrange(0,100) < 50:
+                elif rd.randrange(0,100) <= 20:
+                    if rd.randrange(0,100) <= 50:
                         move(alium,40)
                     else:
                         move(alium,20)
@@ -1401,9 +1409,9 @@ def alienTurn():
                         fire(alium,cthplayer)
 
             else:
-                if cthplayer > 30 + rd.randrange(0,20):
+                if cthplayer >= 30 + rd.randrange(0,20):
                     fire(alium,cthplayer)
-                elif rd.randrange(0,100) < 80:
+                elif rd.randrange(0,100) <= 80:
                     move(alium,20)
                 else:
                     ow(alium)
