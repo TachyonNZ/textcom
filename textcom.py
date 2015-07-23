@@ -1690,7 +1690,8 @@ while soldier.alive == True:
         # Aliens are not allowed to act after the room was changed,
         # because they already scattered when the player entered the new
         # room.
-        if soldier.alive == True and old_room == roomNo:
+        if soldier.alive == True and old_room == roomNo                       \
+           and len(room[roomNo]) > 0:
             print("Alien Activity!")
             s(2)
             alienTurn()
