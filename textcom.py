@@ -517,6 +517,16 @@ class BallisticRifle(Weapon):
         super().__init__('Ballistic Rifle', 3, 4)
 
 
+class LaserRifle(Weapon):
+    def __init__(self):
+        super().__init__('Beam Rifle', 4, 999)
+
+
+class LaserCarbine(Weapon):
+    def __init__(self):
+        super().__init__('Beam Carbine', 3, 999)
+
+
 class PlasmaCarbine(AlienWeapon):
     def __init__(self):
         super().__init__('Light Plasma Rifle', 4, 4, 1, 2)
@@ -534,7 +544,7 @@ class BradfordsPistol(Weapon):
 
 class Unit:
     def __init__(self, hp, aim, mobility, nrank, firstname, lastname,
-                 armour, weapon, items):
+                 armour, weapon, items, mods):
         self.hp = hp
         self.aim = aim
         self.mobility = mobility
@@ -546,6 +556,7 @@ class Unit:
         self.cover = 0
         self.overwatch = False
         self.alive = True
+        self.mods = []
 
     def reload(self):
         self.weapon.reload()
@@ -556,14 +567,16 @@ class Unit:
 
 class Soldier(Unit):
     def __init__(self, sid, sex, hp, aim, mobility, rank, firstname, lastname,
-                 armour, weapon, items):
+                 armour, weapon, items, mods):
         super().__init__(hp, aim, mobility, rank, firstname, lastname, armour,
-                         weapon, items)
+                         weapon, items, mods)
         self.sid = sid
         self.sex = sex
         self.xp = 0
         self.aimpenalty = 0
         self.nickname = None
+        self.mods = []
+        self.hunkerbonus = 0
 
     def __str__(self):
         middle = ' '
@@ -595,15 +608,16 @@ def create_soldier(sid):
     items = [(rd.randrange(0, 3)), (rd.randrange(0, 2))]
     mobility = rd.randrange(11, 16)
     armour = 'BDY'
+    mods  = []
     if rd.randrange(1,100) < 5:
         if rd.randrange(0, 2) == 0:
             if not have_bradford:
                 return Soldier(sid, SEX_MALE, 6, 100, mobility,               \
                                RANK_CENTRAL_OFFICER, '', 'Bradford', armour,  \
-                               BradfordsPistol(), items)
+                               BradfordsPistol(), items, mods)
         if not have_vdoorn:
             return Soldier(sid, SEX_MALE, 6, 80, mobility, RANK_GENERAL,      \
-                           'Peter', VAN_DOORN, armour, BallisticRifle(), items)
+                           'Peter', VAN_DOORN, armour, BallisticRifle(), items, mods)
     weapon = None
     if rd.randrange(0, 2) == 0:
         weapon = BallisticRifle()
@@ -621,7 +635,7 @@ def create_soldier(sid):
         name = rd.choice(XCOM_MALE_FIRSTNAME)
     return Soldier(sid, sex, rd.randrange(3, 6), rd.randrange(50, 75),        \
                    mobility, RANK_ROOKIE, name, rd.choice(XCOM_LASTNAME),     \
-                   armour, weapon, items)
+                   armour, weapon, items, mods)
 
 
 #we define the aliens here. they are initialised as sectoids but this can be changed with the definitions, such
@@ -629,7 +643,7 @@ def create_soldier(sid):
 class Alien(Unit):
     # self, hp, aim, mobility, rank, firstname, lastname, armour, weapon, items
     def __init__(self):
-        super().__init__(0, 0, 0, '', '', '', 'BDY', None, [])
+        super().__init__(0, 0, 0, '', '', '', 'BDY', None, [],[])
         self.species = "Sectoid"
         self.firstname = rd.choice(sectoidfName)
         self.aID = len(pod)
@@ -727,14 +741,14 @@ def playerTurn():
     global meld
     global alloy
     AP = soldier.mobility
-    soldier.overwatch = 0
+    soldier.hunkerbonus = 0
     while AP > 0 and soldier.alive == True: #while the player has spare action points left
         p(0,"HP - "+str(soldier.hp))
         p(0,"AP - "+str(AP))
         #displays stats
         if len(room[roomNo]) == 0:
             p("1","Advance")
-            if AP > 7:
+            if AP > 7 and soldier.weapon.ammo < soldier.weapon.clip_size:
                 p("2","(8AP) Reload")
             while out == False:
                 action = a("int","#")
@@ -749,20 +763,90 @@ def playerTurn():
                     p(spk, "Roger that, moving up!")
                 AP -= 1 #this is redundant because AP is reset the next room anyway
                 roomNo += 1
-                checkspot(roomNo)
-                scatter(roomNo)
-                if rd.randrange(0,100) < 30:
-                    p(0, str(soldier) + ' is in FULL cover.')
-                    soldier.cover = 40
-                else:
-                    p(0, str(soldier) + ' is in HALF cover.')
-                    soldier.cover = 20
-                playerTurn()
+                if not "Drop Zone" in room[roomNo]:
+                    checkspot(roomNo)
+                    scatter(roomNo)
+                    if rd.randrange(0,100) < 30:
+                        p(0, str(soldier) + ' is in FULL cover.')
+                        soldier.cover = 40
+                    else:
+                        p(0, str(soldier) + ' is in HALF cover.')
+                        soldier.cover = 20
+                    playerTurn()
+
+                else:                   
+                    p(spk,"Reached an access point, Commander. Requesting additional goods!")
+                    p(spk,"We only have a short time before they close the access point!")
+                    print("Fragments:",fragments)
+                    print("Elerium:",elerium)
+                    print("Meld:",meld)
+                    print("Alloy:",alloy)
+                    displayShop()
+                    while out == False:
+                        action = a("int","#")
+                    out = False
+
+                    try:
+                        sel = invac[int(action)-1]
+                    except ( IndexError ):
+                        while out == False:
+                            action = a("int","#")
+                        out = False
+                    sel = invac[int(action)-1]
+                    print(sel)
+                    if sel == "AimBonus":
+                        soldier.mods.append("Aim")
+                        soldier.aim += 5
+                        meld -= 15
+                        AP -= 60
+                    elif sel == "HPBonus":
+                        soldier.mods.append("HP")
+                        soldier.HP += 5
+                        meld -= 20
+                        AP -= 60
+                    elif sel == "APBonus":
+                        soldier.mods.append("HP")
+                        soldier.mobility += 2
+                        meld -=15
+                        AP -= 60
+                    elif sel == "NadeBonus":
+                        soldier.mods.append("Nade")
+                        soldier.item.append(0)
+                        soldier.item.append(0)
+                        meld -= 20
+                        AP -= 60
+                    elif sel == "LaserRifle":
+                        soldier.weapon = LaserRifle()
+                        fragments -= 40
+                        elerium -= 20
+                        AP -= 40
+                    elif sel == "LaserCarbine":
+                        soldier.weapon = LaserCarbine()
+                        fragments -= 20
+                        elerium -= 10
+                        AP -= 40
+                    elif sel == "Frag":
+                        soldier.items.append(0)
+                        alloy -= 4
+                        fragments -= 20
+                    elif sel == "Meds":
+                        soldier.items.append(1)
+                        meld -= 10
+                        fragments -= 10
+                    elif sel == "Advance":
+                        roomNo += 1
+                        checkspot(roomNo)
+                        scatter(roomNo)
+                    playerTurn()
+                        
             if action == "2":
                 if AP > 7:
                     soldier.reload()
                     AP -= 8
                     playerTurn()
+        
+
+        
         else:
             displayOptions()
             #now the player will choose an action
@@ -819,8 +903,7 @@ def playerTurn():
                 #heals soldier but consumes the item
             if sel == "Hunker Down":
                 soldier.overwatch = 0
-                if soldier.cover == 20 or soldier.cover == 40:
-                    soldier.cover+=20
+                soldier.hunkerbonus = 20
                 p(spk,"Taking cover!")
                 AP = 0
                 #provides extra cover to soldier
@@ -835,17 +918,21 @@ def playerTurn():
                     p(spk, rd.choice(retort))
                 if type(soldier.weapon) is BallisticCarbine \
                    or type(soldier.weapon) is BallisticRifle:
-                    p(0,"*Dakkadakkadakka*")
+                    p(0,"*Dakkadakkadakka!*")
+                elif type(soldier.weapon) is LaserCarbine \
+                   or type(soldier.weapon) is LaserRifle:
+                    p(0,"*Zzzaaaaaap!*")
                 elif type(soldier.weapon) is BradfordsPistol:
-                    p(0,"*Bang*")
+                    p(0,"*Bang!*")
                 else:
-                    p(0,"*Whap-whap-whap*")
+                    p(0,"*Whap-whap-whap!*")
                 chance = (soldier.aim)-(sel.cover)
                 if 2 in soldier.items: #scope
                     chance += 0
                 # Carbines get an aim bonus
                 if type(soldier.weapon) is BallisticCarbine \
-                   or type(soldier.weapon) is PlasmaCarbine:
+                   or type(soldier.weapon) is PlasmaCarbine \
+                   or type(soldier.weapon) is LaserCarbine:
                     chance += 10
                 roll = rd.randrange(0,100)
                 if roll <= chance+10:
@@ -901,6 +988,62 @@ def playerTurn():
     #ends turn by default
 
 
+def displayShop():
+    global fragments
+    global elerium
+    global meld
+    global alloy
+    global invac
+    global invacref
+    global AP
+    invac = []
+    invacref = []
+    AP = 60
+    print("Time: "+str(AP))
+    invac.append("Advance")
+    p(len(invac),"Advance")
+    if AP == 60:
+        if meld >= 15:
+            if not "Aim" in soldier.mods:
+                invac.append("AimBonus")
+                p(len(invac),"(60 Time) (15m) Insta-Genemod: Depth Perception (+5 aim)")
+            if not "AP" in soldier.mods:
+                invac.append("APBonus")
+                p(len(invac),"(60 Time) (15m) Micro-Augment: Reflex Servomotors (+2 AP)")
+            invac.append("")
+        if meld >= 20:
+            if not "HP" in soldier.mods:
+                invac.append("HPBonus")
+                p(len(invac),"(60 Time) (20m) Insta-Genemod: Muscle Regeneration (+5 HP)")
+            if not "Nade" in soldier.mods:
+                invac.append("NadeBonus")
+                p(len(invac),"(60 Time) (20m) Micro-Augment: Grenade Launcher (+2 Frag Grenades)")
+    if AP >= 50:
+        if not soldier.weapon == LaserRifle() and elerium >= 20 and fragments >= 40:
+            invac.append("LaserRifle")
+            p(len(invac),"(40 Time) (20e) (40f) Get Laser Rifle")
+            print("     (~4dmg), infinite ammo")
+        if not soldier.weapon == LaserCarbine() and elerium >= 10 and fragments >= 30:
+            invac.append("LaserCarbine")
+            p(len(invac),"(40 Time) (10e) (30f) Get Laser Carbine")
+            print("     (~3dmg), infinite ammo, +10% aim")
+    if AP >= 30:
+        if meld >= 10 and fragments >= 10:
+            invac.append("Meds")
+            p(len(invac),"(30 Time) (10m) (10f) Get Nano Serum")
+        if alloy >= 4 and fragments >= 20:
+            invac.append("Frag")
+            p(len(invac),"(30 Time) (20f) (4a) Get Frag Grenade")
+    if AP >= 20:
+        if meld >= 5:
+            invac.append("Heal")
+            p(len(invac),"(20 Time) (5m) Recuperate (+1 HP)")
+        invac.append("Reload")
+        p(len(invac),"(20 Time) Reload Weapon")
+    invac.append("Skip")
+    p(len(invac),"("+str(AP)+" Time) Advance (Skip this Drop Zone)")
+
+
 def checkForOverwatch(who,getalium):
     if who == "Alium": #if it's an alien shooting at soldier
         for i in range(len(room[roomNo])):
@@ -940,39 +1083,48 @@ def checkForOverwatch(who,getalium):
 
 
 def fire(alium,cthplayer):
-    p(0, str(alium) + ' fires at ' + str(soldier) + '(' + str(cthplayer) + '%)')
-    dmg = alium.shoot()
-    if rd.randrange(0,100) < cthplayer:
-        p(0,str(dmg)+" damage!")
-        soldier.hp -= dmg
-        checkPlayerDead()
-        #did you kill the player, alien?
-    else:
-        p(0,"Missed!")
+    if alium.alive == True:
+
+        p(0, str(alium) + ' fires at ' + str(soldier) + '(' + str(cthplayer) + '%)')
+        dmg = alium.shoot()
+        if rd.randrange(0,100) < cthplayer:
+            p(0,str(dmg)+" damage!")
+            soldier.hp -= dmg
+            checkPlayerDead()
+            #did you kill the player, alien?
+        else:
+            p(0,"Missed!")
 
 
 def nade(alium):
-    p(0, str(alium) + ' uses Alien Grenade!')
-    p(0,"**BLAM!**")
-    alium.item1 = 999
-    #sets the aliens item to 'none', no more grenades for you
-    p(0,"3 damage!")
-    soldier.hp -= 3
-    checkPlayerDead()
+    if alium.alive == True:
+
+        p(0, str(alium) + ' uses Alien Grenade!')
+        p(0,"**BLAM!**")
+        alium.item1 = 999
+        #sets the aliens item to 'none', no more grenades for you
+        p(0,"3 damage!")
+        soldier.cover = 20
+        soldier.hp -= 3
+        checkPlayerDead()
 
 
 def ow(alium):
-    p(0, str(alium) + ' went on overwatch!')
-    alium.overwatch = 1
+    if alium.alive == True:
+
+        p(0, str(alium) + ' went on overwatch!')
+        alium.overwatch = 1
 
 
 def move(alium,cover):
-    if cover == 40:
-        p(0, str(alium) + ' runs to Full cover!') #if an alien has no cover, it will run to full cover. same goes if it's flanked
-    elif cover == 20:
-        p(0, str(alium) + ' runs to Half cover!')
-    checkForOverwatch("Soldier",alium)
-    alium.cover = cover
+    if alium.alive == True:
+        if cover == 40:
+            p(0, str(alium) + ' runs to Full cover!') #if an alien has no cover, it will run to full cover. same goes if it's flanked
+        elif cover == 20:
+            p(0, str(alium) + ' runs to Half cover!')
+        checkForOverwatch("Soldier",alium)
+        alium.overwatch = False
+        alium.cover = cover
 
 
 def alienTurn():
@@ -982,8 +1134,8 @@ def alienTurn():
         except ( Exception ):
             i = 0
         #because something may have happened that causes an index error
-        if alium.alive != 0 and soldier.alive == True:
-            cthplayer = alium.aim - soldier.cover
+        if alium.alive == True and soldier.alive == True:
+            cthplayer = alium.aim - soldier.cover - soldier.hunkerbonus
             if alium.item1 == 2: #focusing lens
                 cthplayer += 20
 
@@ -1028,6 +1180,7 @@ def checkDead(alium):
         getLoot(alium)
         drop()
         checkXP()
+        alium.alive = False
         room[roomNo].pop(room[roomNo].index(alium))
         #kills, loots and removes the alien from the game
 
@@ -1184,7 +1337,7 @@ def displayOptions():
         invac.append("Overwatch")
         p(len(invac),"Overwatch")
     else:
-        if AP > 7:
+        if AP > 7 and soldier.weapon.ammo < soldier.weapon.clip_size:
             invac.append("Reload")
             p(len(invac),"(8AP) Reload Weapon")
     if 0 in soldier.items:
@@ -1338,6 +1491,10 @@ x.hp = 50
 #generates the pods in each room
 room.append([])
 room[31] = []
+room[5] = ["Drop Zone"]
+room[10] = ["Drop Zone"]
+room[15] = ["Drop Zone"]
+room[20] = ["Drop Zone"]
 
 roomNo = 0
 AP = soldier.mobility
