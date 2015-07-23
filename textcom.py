@@ -449,6 +449,10 @@ class Weapon:
         self.clip_size = clip_size
         self.ammo = clip_size
 
+    def get_sound(self):
+        '''Sound interface method'''
+        pass
+
     def reload(self):
         self.ammo = self.clip_size
 
@@ -478,45 +482,72 @@ class BallisticPistol(Weapon):
     def __init__(self):
         super().__init__('Ballistic Pistol', 2, 10)
 
+    def get_sound(self):
+        return '*Dak*'
+
 
 class Autopistol(Weapon):
     def __init__(self):
         super().__init__('Autopistol', 2, 10)
 
+    def get_sound(self):
+        return '*Dakdakdak*'
+
 
 class PlasmaPistol(Weapon):
     def __init__(self):
-        super().__init__('Plasma Pistol', 3, 10) # TODO: values
+        super().__init__('Plasma Pistol', 3, 10)
+
+    def get_sound(self):
+        return '*Whap*'
 
 
 class AlloyPistol(Weapon):
     def __init__(self):
-        super().__init__('Alloy Pistol', 4, 10) # TODO: values
+        super().__init__('Alloy Pistol', 4, 10)
+
+    def get_sound(self):
+        return '*Whomp*'
 
 
 class BallisticCarbine(Weapon):
     def __init__(self):
         super().__init__('Ballistic Carbine', 2, 3)
 
+    def get_sound(self):
+        return '*Dakkadakkadakka*'
+
 
 class BallisticRifle(Weapon):
     def __init__(self):
         super().__init__('Ballistic Rifle', 3, 4)
+
+    def get_sound(self):
+        return '*Dakkadakkadakka*'
 
 
 class PlasmaCarbine(AlienWeapon):
     def __init__(self):
         super().__init__('Light Plasma Rifle', 4, 4, 1, 2)
 
+    def get_sound(self):
+        return '*Whap-whap-whap*'
+
 
 class PlasmaRifle(AlienWeapon):
     def __init__(self):
         super().__init__('Plasma Rifle', 6, 5, 2, 4)
 
+    def get_sound(self):
+        return '*Whap-whap-whap*'
+
 
 class BradfordsPistol(Weapon):
     def __init__(self):
         super().__init__("Bradford's Pistol", 5, 999)
+
+    def get_sound(self):
+        return '*Bang*'
 
 ########################################################################
 # item classes                                                         #
@@ -803,13 +834,7 @@ class FireAction(Action):
             p(spk, rd.choice(VAN_DOORN_QUOTES))
         else:
             p(spk, rd.choice(retort))
-        if type(self.soldier.weapon) is BallisticCarbine \
-           or type(self.soldier.weapon) is BallisticRifle:
-            p(0, '*Dakkadakkadakka*')
-        elif type(self.soldier.weapon) is BradfordsPistol:
-            p(0, '*Bang*')
-        else:
-            p(0, '*Whap-whap-whap*')
+        p(0, self.soldier.weapon.get_sound())
         roll = rd.randrange(0, 100)
         if roll <= self.hit_chance + 10:
             self.target.hp -= damage
