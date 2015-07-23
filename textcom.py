@@ -1203,7 +1203,8 @@ def playerTurn():
                         actions.append(FireAction(soldier, alien))
                 if soldier.ap >= overwatch_action.ap_costs:
                     actions.append(overwatch_action)
-            if soldier.ap >= reload_action.ap_costs:
+            if soldier.weapon.ammo < soldier.weapon.clip_size                 \
+               and soldier.ap >= reload_action.ap_costs:
                 actions.append(reload_action)
             for item in soldier.items:
                 if item.use_ap_costs > 0 and soldier.ap >= item.use_ap_costs:
@@ -1689,7 +1690,8 @@ while soldier.alive == True:
 
         # Aliens are not allowed to act after the room was changed,
         # because they already scattered when the player entered the new
-        # room.
+        # room.  Also, there is no need for an alien turn if there are
+        # no more aliens in the room.
         if soldier.alive == True and old_room == roomNo                       \
            and len(room[roomNo]) > 0:
             print("Alien Activity!")
