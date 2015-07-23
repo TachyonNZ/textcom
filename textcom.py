@@ -1209,7 +1209,7 @@ def playerTurn():
             for item in soldier.items:
                 if item.use_ap_costs > 0 and soldier.ap >= item.use_ap_costs:
                     actions.append(UseItemAction(soldier, item))
-            if soldier.ap > reposition_action.ap_costs:
+            if soldier.ap >= reposition_action.ap_costs:
                 actions.append(reposition_action)
             if soldier.cover > COVER_NONE                                     \
                and soldier.ap >= hunker_down_action.ap_costs:
