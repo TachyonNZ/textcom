@@ -777,66 +777,70 @@ def playerTurn():
                 else:                   
                     p(spk,"Reached an access point, Commander. Requesting additional goods!")
                     p(spk,"We only have a short time before they close the access point!")
-                    print("Fragments:",fragments)
-                    print("Elerium:",elerium)
-                    print("Meld:",meld)
-                    print("Alloy:",alloy)
-                    displayShop()
-                    while out == False:
-                        action = a("int","#")
-                    out = False
 
-                    try:
-                        sel = invac[int(action)-1]
-                    except ( IndexError ):
+                    while AP != 0:
+                        print("Fragments:",fragments)
+                        print("Elerium:",elerium)
+                        print("Meld:",meld)
+                        print("Alloy:",alloy)
+                        displayShop()
                         while out == False:
                             action = a("int","#")
                         out = False
-                    sel = invac[int(action)-1]
-                    print(sel)
-                    if sel == "AimBonus":
-                        soldier.mods.append("Aim")
-                        soldier.aim += 5
-                        meld -= 15
-                        AP -= 60
-                    elif sel == "HPBonus":
-                        soldier.mods.append("HP")
-                        soldier.HP += 5
-                        meld -= 20
-                        AP -= 60
-                    elif sel == "APBonus":
-                        soldier.mods.append("HP")
-                        soldier.mobility += 2
-                        meld -=15
-                        AP -= 60
-                    elif sel == "NadeBonus":
-                        soldier.mods.append("Nade")
-                        soldier.item.append(0)
-                        soldier.item.append(0)
-                        meld -= 20
-                        AP -= 60
-                    elif sel == "LaserRifle":
-                        soldier.weapon = LaserRifle()
-                        fragments -= 40
-                        elerium -= 20
-                        AP -= 40
-                    elif sel == "LaserCarbine":
-                        soldier.weapon = LaserCarbine()
-                        fragments -= 20
-                        elerium -= 10
-                        AP -= 40
-                    elif sel == "Frag":
-                        soldier.items.append(0)
-                        alloy -= 4
-                        fragments -= 20
-                    elif sel == "Meds":
-                        soldier.items.append(1)
-                        meld -= 10
-                        fragments -= 10
-                    elif sel == "Advance":
-                        roomNo += 1
-                        checkspot(roomNo)
-                        scatter(roomNo)
+
+                        try:
+                            sel = invac[int(action)-1]
+                        except ( IndexError ):
+                            while out == False:
+                                action = a("int","#")
+                            out = False
+                            sel = invac[int(action)-1]
+                        print(sel)
+                        if sel == "AimBonus":
+                            soldier.mods.append("Aim")
+                            soldier.aim += 5
+                            meld -= 15
+                            AP -= 60
+                        elif sel == "HPBonus":
+                            soldier.mods.append("HP")
+                            soldier.HP += 5
+                            meld -= 20
+                            AP -= 60
+                        elif sel == "APBonus":
+                            soldier.mods.append("HP")
+                            soldier.mobility += 2
+                            meld -=15
+                            AP -= 60
+                        elif sel == "NadeBonus":
+                            soldier.mods.append("Nade")
+                            soldier.item.append(0)
+                            soldier.item.append(0)
+                            meld -= 20
+                            AP -= 60
+                        elif sel == "LaserRifle":
+                            soldier.weapon = LaserRifle()
+                            fragments -= 40
+                            elerium -= 20
+                            AP -= 40
+                        elif sel == "LaserCarbine":
+                            soldier.weapon = LaserCarbine()
+                            fragments -= 20
+                            elerium -= 10
+                            AP -= 40
+                        elif sel == "Frag":
+                            soldier.items.append(0)
+                            alloy -= 4
+                            fragments -= 20
+                        elif sel == "Meds":
+                            soldier.items.append(1)
+                            meld -= 10
+                            fragments -= 10
+                        elif sel == "Reload":
+                            soldier.weapon.ammo = soldier.weapon.clip_size
+                            AP -= 20
+                        elif sel == "Advance":
+                            AP = 0
+                    roomNo += 1
                     playerTurn()
                         
             if action == "2":
@@ -1496,7 +1500,7 @@ room[10] = ["Drop Zone"]
 room[15] = ["Drop Zone"]
 room[20] = ["Drop Zone"]
 
-roomNo = 0
+roomNo = 4
 AP = soldier.mobility
 
 #game loop, runs until your soldier is killed
