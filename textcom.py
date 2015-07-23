@@ -332,8 +332,14 @@ XCOM_FEMALE_NICKNAMES_MEC = [
     'Vanessa'
     'Vesta'
 ]
-bradford = ["CLOSE RANGE?!","WHAT HAVE YOU DONE?!","COMMANDER!","WE'RE PICKING UP MULTIPLE CONTACTS!","CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!"]
-VAN_DOORN_QUOTES = [
+BRADFORD_RETORTS = [
+    'CLOSE RANGE?!',
+    'WHAT HAVE YOU DONE?!',
+    'COMMANDER!',
+    "WE'RE PICKING UP MULTIPLE CONTACTS!",
+    'CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!'
+]
+VAN_DOORN_RETORTS = [
     "I'm the Ops team! I'll get over there!",
     "I'll get down there! Just fair if I have all the fun.",
     "I'm getting down there or what?",
@@ -672,6 +678,18 @@ class Soldier(Unit):
             hit_chance = 95
         return hit_chance
 
+    def get_overwatch_confirmation(self):
+        return 'Got it, on Overwatch.'
+
+    def get_overwatch_miss_retort(self):
+        return 'Shot failed to connect!'
+
+    def get_reposition_confirmation(self):
+        return 'Moving to Full cover!'
+
+    def get_retort(self):
+        return rd.choice(retort)
+
     def print_summary(self):
         middle = ' '
         if self.nickname:
@@ -828,12 +846,7 @@ class FireAction(Action):
 
         self._calc_ap() # TODO
         damage = self.soldier.shoot()
-        if self.soldier.lastname == 'Bradford':
-            p(spk, rd.choice(bradford))
-        elif self.soldier.lastname == VAN_DOORN:
-            p(spk, rd.choice(VAN_DOORN_QUOTES))
-        else:
-            p(spk, rd.choice(retort))
+        p(spk, self.soldier.get_retort())
         p(0, self.soldier.weapon.get_sound())
         roll = rd.randrange(0, 100)
         if roll <= self.hit_chance + 10:
@@ -865,12 +878,7 @@ class OverwatchAction(Action):
 
     def perform(self):
         self._calc_ap()
-        if self.soldier.lastname == "Bradford":
-            p(spk, "Keep your eyes peeled!")
-        elif self.soldier.lastname == VAN_DOORN:
-            p(spk, "You coming down here or what?")
-        else:
-            p(spk, "Got it, on Overwatch.")
+        p(spk, self.soldier.get_overwatch_confirmation())
         self.soldier.ap = 0 # TODO check if this is necessary
         self.soldier.overwatch = True
 
@@ -893,12 +901,7 @@ class RepositionAction(Action):
         # if any aliens are on overwatch, check and be shot at if they are
         checkForOverwatch("Alium", 0) # ?!
         self.soldier.cover = 40 # ?!
-        if self.soldier.lastname == "Bradford":
-            p(spk, "Moving to...wait...that's CLOSE RANGE!")
-        elif self.soldier.lastname == VAN_DOORN:
-            p(spk, "Come on! I won't go down without a fight.")
-        else:
-            p(spk, "Moving to Full cover!")
+        p(spk, self.soldier.get_reposition_confirmation())
         #chance to flank an alien
         if rd.randrange(0, 100) < 50:
             alien = rd.choice(room[roomNo])
@@ -963,7 +966,6 @@ def get_int_input(prompt, vmin, vmax):
 def create_soldier(sid):
     global have_bradford
     global have_vdoorn
-    # sid, hp, aim, mobility, rank, firstname, lastname, armour, weapon, items
 
     items = [(rd.choice([ITEM_FRAG_GRENADE, ITEM_MEDKIT, ITEM_SCOPE])),       \
              (rd.choice([ITEM_FRAG_GRENADE, ITEM_MEDKIT]))]
@@ -972,12 +974,26 @@ def create_soldier(sid):
     if rd.randrange(1,100) < 5:
         if rd.randrange(0, 2) == 0:
             if not have_bradford:
-                return Soldier(sid, SEX_MALE, 6, 100, mobility,               \
-                               RANK_CENTRAL_OFFICER, '', 'Bradford', armour,  \
-                               BradfordsPistol(), items)
+                bradford = Soldier(sid, SEX_MALE, 6, 100, mobility,           \
+                                   RANK_CENTRAL_OFFICER, '', 'Bradford',      \
+                                   armour, BradfordsPistol(), items)
+                bradford.get_overwatch_confirmation =                         \
+                        lambda: 'Keep your eyes peeled!'
+                bradford.get_overwatch_miss_retort =                          \
+                        lambda: 'How did I miss that?!'
+                bradford.get_reposition_confirmation =                        \
+                        "Moving to...wait...that's CLOSE RANGE!"
+                bradford.get_retort = lambda: rd.choice(BRADFORD_RETORTS)
+                return bradford
         if not have_vdoorn:
-            return Soldier(sid, SEX_MALE, 6, 80, mobility, RANK_GENERAL,      \
+            van_doorn = Soldier(sid, SEX_MALE, 6, 80, mobility, RANK_GENERAL, \
                            'Peter', VAN_DOORN, armour, BallisticRifle(), items)
+            van_doorn.get_overwatch_confirmation =                            \
+                    lambda: 'You coming down here or what?'
+            van_doorn.get_reposition_confirmation =                           \
+                    lambda: "Come on! I won't go down without a fight."
+            van_doorn.get_retort = lambda: rd.choice(VAN_DOORN_RETORTS)
+            return van_doorn
     weapon = None
     if rd.randrange(0, 2) == 0:
         weapon = BallisticRifle()
@@ -1104,10 +1120,7 @@ def checkForOverwatch(who,getalium):
                     alium.hp -= dmg
                     checkDead(alium)
                 else:
-                    if soldier.lastname == "Bradford":
-                        p(spk,"How did I miss that?!")
-                    else:
-                        p(spk,"Shot failed to connect!")
+                    p(spk, self.soldier.get_overwatch_miss_retort())
                 soldier.overwatch = 0
 
 
