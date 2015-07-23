@@ -736,10 +736,6 @@ class Alien(Unit):
         return '(' + self.species + ') ' + ALIEN_RANKS[self.nrank] + ' '      \
                + self.firstname + self.lastname
 
-    #gives us tactical information, like HP
-    def tactical_info(self):
-        return (ALIEN_RANKS[self.nrank] + ' ' + self.firstname + ' '          \
-                + self.lastname + ' - ' + str(self.hp) + ' HP')
 
 ###########
 # actions #
@@ -806,9 +802,9 @@ class FireAction(Action):
         self.hit_chance = soldier.aim_at(target)
 
     def __str__(self):
-        return '{} (~{} dmg)(6AP) Fire {} at {} - ({}%)'.\
-               format(self.name, soldier.weapon.damage, soldier.weapon.name,  \
-                      self.target, self.hit_chance)
+        return '(~{} dmg)(6AP) Fire {} at {} - {} HP - ({}%)'.\
+               format(soldier.weapon.damage, soldier.weapon.name, self.target,\
+                      self.target.hp, self.hit_chance)
 
     def perform(self):
         global alloy
