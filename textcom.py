@@ -833,43 +833,52 @@ def playerTurn():
                             soldier.hp += 5
                             meld -= 20
                             AP -= 60
+                            print("Muscle Regeneration Insta-Genemod applied!")
                         elif sel == "APBonus":
                             soldier.mods.append("HP")
                             soldier.mobility += 2
                             meld -=15
                             AP -= 60
+                            print("Micro Servomotors Augment inserted!")
                         elif sel == "NadeBonus":
                             soldier.mods.append("Nade")
                             soldier.item.append(0)
                             soldier.item.append(0)
                             meld -= 20
                             AP -= 60
+                            print("Grenade Launcher Augment inserted!")
                         elif sel == "LaserRifle":
                             soldier.weapon = LaserRifle()
                             fragments -= 40
                             elerium -= 20
                             AP -= 40
+                            print("Beam Rifle fabricated!")
                         elif sel == "LaserCarbine":
                             soldier.weapon = LaserCarbine()
                             fragments -= 20
                             elerium -= 10
                             AP -= 40
+                            print("Beam Carbine fabricated!")
                         elif sel == "Frag":
                             soldier.items.append(0)
                             alloy -= 4
                             fragments -= 20
                             AP -= 20
+                            print("Frag Grenade fabricated!")
                         elif sel == "Meds":
                             soldier.items.append(1)
                             meld -= 10
                             fragments -= 10
                             AP -= 20
+                            print("Nano Serum fabricated!")
                         elif sel == "Reload":
                             soldier.weapon.ammo = soldier.weapon.clip_size
                             AP -= 20
+                            print("Weapon reloaded!")
                         elif sel == "Heal":
                             soldier.hp += 1
                             AP -= 20
+                            print("Healed 1HP!")
                         elif sel == "Advance":
                             AP = 0
                     p(spk,"All out of time! I'll have to keep moving!")
