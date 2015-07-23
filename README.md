@@ -2,6 +2,15 @@
 A Text-Based Roguelike in Python, based on XCOM: Enemy Unknown
 
 
+**Running the game:**
+
+
+Please have Python 3.x installed (where x is any number, just make sure it's 3.something, preferably 3.4.3). You can find a download at www.python.org/downloads Either double click on the program to run it in Terminal/IDLE/Command Prompt, or right click and go Open With...IDLE Shell.
+
+
+If you already have it installed but aren't sure what version it is, just run IDLE if you can, and it should tell you. If you don't have Python 3.x, please upgrade to it, because the game won't run as well and might crash.
+
+
 **How to play:**
 
 
