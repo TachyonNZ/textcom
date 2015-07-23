@@ -423,23 +423,6 @@ pod = []
 room = [[]]
 roomNo = -1
 
-out = False
-def a(form, q): #ask
-    global out
-    out = input(q)
-    if form == "int":
-        if out.isdigit() == 1:
-            pass
-        else:
-            out = False
-    if form == "str":
-        if out.isalpha() == 1:
-            pass
-        else:
-            out = False
-    return out
-#get input and check against wanted type
-
 def p(spk,q): #print with speaker and possibly delay
     if spk != 0:
         print(str(spk)+': "'+str(q)+'"')
