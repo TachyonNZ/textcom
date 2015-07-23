@@ -1683,12 +1683,16 @@ roomNo = 0
 #game loop, runs until your soldier is killed
 while soldier.alive == True:
     try:
+        old_room = roomNo
         playerTurn()
         p(0, str(soldier) + ' is out of AP!')
-        print("Alien Activity!")
-        s(2)
 
-        if soldier.alive == True:
+        # Aliens are not allowed to act after the room was changed,
+        # because they already scattered when the player entered the new
+        # room.
+        if soldier.alive == True and old_room == roomNo:
+            print("Alien Activity!")
+            s(2)
             alienTurn()
     except ( ValueError or IndexError ):
         pass
