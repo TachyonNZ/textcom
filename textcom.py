@@ -1109,7 +1109,7 @@ def create_soldier(sid):
                 bradford.get_overwatch_miss_retort =                          \
                         lambda: 'How did I miss that?!'
                 bradford.get_reposition_confirmation =                        \
-                        "Moving to...wait...that's CLOSE RANGE!"
+                        lambda: "Moving to...wait...that's CLOSE RANGE!"
                 bradford.get_retort = lambda: rd.choice(BRADFORD_RETORTS)
                 return bradford
         if not have_vdoorn:
