@@ -1500,7 +1500,7 @@ room[10] = ["Drop Zone"]
 room[15] = ["Drop Zone"]
 room[20] = ["Drop Zone"]
 
-roomNo = 4
+roomNo = 0
 AP = soldier.mobility
 
 #game loop, runs until your soldier is killed
