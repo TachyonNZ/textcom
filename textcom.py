@@ -528,9 +528,9 @@ class Autopistol(Weapon):
         return '*Dakdakdak*'
 
 
-class PlasmaPistol(Weapon):
+class PlasmaPistol(AlienWeapon):
     def __init__(self):
-        super().__init__('Plasma Pistol', 3, 10)
+        super().__init__('Plasma Pistol', 2, 10,1,1)
 
     def get_sound(self):
         return '*Whap*'
@@ -541,7 +541,7 @@ class AlloyPistol(Weapon):
         super().__init__('Alloy Pistol', 4, 10)
 
     def get_sound(self):
-        return '*Whomp*'
+        return '*Kchak!*'
 
 
 class BallisticCarbine(Weapon):
@@ -597,7 +597,7 @@ class BradfordsPistol(Weapon):
         super().__init__("Bradford's Pistol", 5, 999)
 
     def get_sound(self):
-        return '*Bang*'
+        return '*Dak*'
 
 ########################################################################
 # item classes                                                         #
@@ -660,8 +660,8 @@ class Medkit(Item):
 
 
 ITEM_SCOPE = Item('Scope', 0, 'Increase aim')
-ITEM_FRAG_GRENADE = Explosive('Frag grenade', 10, 2, 'BAM!')
-ITEM_ALIEN_GRENADE = Explosive('Alien grenade', 15, 4, '**BLAM**!')
+ITEM_FRAG_GRENADE = Explosive('Frag Grenade', 10, 2, 'BAM!')
+ITEM_ALIEN_GRENADE = Explosive('Alien Grenade', 15, 4, '**BLAM**!')
 ITEM_MEDKIT = Medkit()
 
 ########################################################################
@@ -763,7 +763,7 @@ class Alien(Unit):
         self.hp = 2 + self.nrank
         self.aim = rd.randrange(50, 75) + self.nrank
         self.mobility = rd.randrange(9, 13) + self.nrank
-        self.weapon = PlasmaCarbine()
+        self.weapon = PlasmaPistol()
         self.secondary = PlasmaPistol()
         self.item1 = rd.randrange(0,3)
         self.alive = True
@@ -777,6 +777,7 @@ class Alien(Unit):
         self.hp = 3 + self.nrank
         self.aim = rd.randrange(60, 80) + self.nrank
         self.mobility = rd.randrange(12, 15) + self.nrank
+        self.weapon = PlasmaCarbine()
         self.item1 = rd.randrange(0,3)
         self.armour = "BDY" #body armour
         self.alive = True
@@ -790,6 +791,7 @@ class Alien(Unit):
         self.item1 = rd.randrange(0,3)
         self.hp = 4 + self.nrank
         self.aim = rd.randrange(50, 70) + self.nrank
+        self.weapon = PlasmaCarbine()
         self.mobility = rd.randrange(12, 15) + self.nrank
         self.armour = "BDY" #body armour
         self.alive = True
@@ -815,7 +817,6 @@ class Alien(Unit):
     def __str__(self):
         return '(' + self.species + ') ' + ALIEN_RANKS[self.nrank] + ' '      \
                + self.firstname + " " + self.lastname
-
 
 ###########
 # actions #
@@ -864,12 +865,6 @@ class AdvanceAction(Action):
         if not "Drop Zone" in room[roomNo]:
             checkspot(roomNo)
             scatter(roomNo)
-            if rd.randrange(0,100) < 30:
-                p(0, str(soldier) + ' is in FULL cover.')
-                soldier.cover = 40
-            else:
-                p(0, str(soldier) + ' is in HALF cover.')
-                soldier.cover = 20
         else:
             p(spk,"Reached an access point, Commander. Requesting additional goods!")
             p(spk,"We only have a short time before the aliens close it off!")
@@ -940,7 +935,10 @@ class AdvanceAction(Action):
                     print("Healed 1HP!")
                 elif sel == "Advance":
                     ap = 0
+                s(.5)
+            s(.5)
             p(spk,"All out of time! I'll have to keep moving!")
+            s(.5)
             roomNo += 1
             checkspot(roomNo)
             scatter(roomNo)
@@ -974,7 +972,9 @@ class FireAction(Action):
         self._calc_ap()
         damage = self.soldier.shoot()
         p(spk, self.soldier.get_retort())
+        
         p(0, self.soldier.weapon.get_sound())
+        s(.5)
         roll = rd.randrange(0, 100)
         if roll <= self.hit_chance + 10:
             self.target.hp -= damage
@@ -986,6 +986,7 @@ class FireAction(Action):
             checkDead(self.target)
         else:
             p(0,'Missed!')
+        s(.5)
 
 
 class HunkerDownAction(Action):
@@ -997,6 +998,7 @@ class HunkerDownAction(Action):
         if soldier.cover == COVER_HALF or soldier.cover == COVER_FULL:
             soldier.hunkerbonus += 20
         p(spk, 'Taking cover!')
+        s(.5)
 
 
 class OverwatchAction(Action):
@@ -1006,6 +1008,7 @@ class OverwatchAction(Action):
     def perform(self):
         self._calc_ap()
         p(spk, self.soldier.get_overwatch_confirmation())
+        s(.5)
         self.soldier.ap = 0 # TODO check if this is necessary
         self.soldier.overwatch = True
 
@@ -1017,6 +1020,7 @@ class ReloadAction(Action):
     def perform(self):
         self._calc_ap()
         soldier.reload()
+        s(.5)
 
 
 class RepositionAction(Action):
@@ -1029,11 +1033,13 @@ class RepositionAction(Action):
         checkForOverwatch("Alium", 0) # ?!
         self.soldier.cover = 40 # ?!
         p(spk, self.soldier.get_reposition_confirmation())
+        s(.5)
         #chance to flank an alien
         if rd.randrange(0, 100) < 50:
             alien = rd.choice(room[roomNo])
+            
             p(0, str(alien) + ' is flanked!')
-            alien.cover = COVER_FLANKED
+            alien.cover = COVER_FLANKED # TODO: flanked should be worse than no cover
 
 
 class UseItemAction(Action):
@@ -1081,13 +1087,13 @@ def get_int_input(prompt, vmin, vmax):
         if instr.isdigit():
             val = int(instr)
             if val < vmin:
-                print('The input is too small')
+                print("That's not an option.")
             elif vmax < val:
-                print('The input is too big')
+                print("That's not an option.")
             else:
                 return val
         else:
-            print('Input must be a number')
+            print("Please enter the number of the action.")
 
 
 def create_soldier(sid):
@@ -1152,14 +1158,18 @@ def scatter(roomNo):
         if not room[roomNo][i].cover == -10:
             p(0, str(room[roomNo][i]) + ' moves to '                          \
               + cover[covernumber.index(room[roomNo][i].cover)] + ' cover!')
+            s(.5)
         else:
             p(0, str(room[roomNo][i]) + " can't find any cover!")
+            s(.5)
+    print()
 
 
 #could probably be merged in with scatter(). Tells you that you've seen an alien
 def checkspot(roomNo):
     for i in range(len(room[roomNo])):
         p(0, str(room[roomNo][i]) + ' spotted!')
+    s(.5)
 
 
 def prompt_player(actions):
@@ -1185,11 +1195,19 @@ def playerTurn():
     overwatch_action = OverwatchAction(soldier)
     reload_action = ReloadAction(soldier)
     reposition_action = RepositionAction(soldier)
+    
+    #maybe just have these as def's instead of classes?
 
     # while the player has spare action points left
     while soldier.ap > 0 and soldier.alive == True:
         # displays stats
         p(0, 'HP: ' + str(soldier.hp) + '\tAP: ' + str(soldier.ap))
+        if rd.randrange(0,100) < 30:
+            p(0, str(soldier) + ' is in FULL cover.')
+            soldier.cover = 40
+        else:
+            p(0, str(soldier) + ' is in HALF cover.')
+            soldier.cover = 20
         actions = []
         if len(room[roomNo]) == 0:
             actions.append(advance_action)
@@ -1282,6 +1300,7 @@ def checkForOverwatch(who,getalium):
             cthplayer = alium.aim - soldier.cover + 10
             if alium.overwatch == 1:
                 p(0, str(alium) + ' reacts!')
+                s(1)
                 if alium.item1 == 2:
                     cthplayer += 10
                 if rd.randrange(0,100) < cthplayer:
@@ -1298,6 +1317,7 @@ def checkForOverwatch(who,getalium):
         cth = soldier.aim - alium.cover + 10
         if soldier.overwatch == 1:
                 p(0, str(soldier) + ' reacts!')
+                s(1)
                 dmg = soldier.shoot()
                 if 2 in soldier.items:
                     cth += 10
@@ -1313,12 +1333,16 @@ def checkForOverwatch(who,getalium):
 def fire(alium,cthplayer):
     if alium.alive == True:
         if cthplayer > 0:
-            p(0, str(alium) + ' fires at ' + str(soldier) + '(' + str(cthplayer) + '%)')
+            p(0, str(alium) + ' fires at ' + str(soldier) + ' (' + str(cthplayer) + '%)'+'('+alium.weapon.name+")")
+            print(alium.weapon.get_sound())
+            s(.5)
             dmg = alium.shoot()
+            s(.5)
             if rd.randrange(0,100) < cthplayer:
                 p(0,str(dmg)+" damage!")
                 soldier.hp -= dmg
                 checkPlayerDead()
+                
                 #did you kill the player, alien?
             else:
                 p(0,"Missed!")
@@ -1334,7 +1358,9 @@ def nade(alium):
     if alium.alive == True:
         if alium.item1 == 0:
             p(0, str(alium) + ' uses Alien Grenade!')
+            s(.5)
             p(0,"**BLAM!**")
+            s(.5)
             alium.item1 = 999
             #sets the aliens item to 'none', no more grenades for you
             p(0,"3 damage!")
@@ -1352,10 +1378,12 @@ def ow(alium):
 
 def move(alium,cover):
     if alium.alive == True:
+        s(.5)
         if cover == 40:
             p(0, str(alium) + ' runs to Full cover!') #if an alien has no cover, it will run to full cover. same goes if it's flanked
         elif cover == 20:
             p(0, str(alium) + ' runs to Half cover!')
+        s(.5)
         checkForOverwatch("Soldier",alium)
         alium.overwatch = False
         alium.cover = cover
@@ -1372,31 +1400,24 @@ def alienTurn():
             cthplayer = (alium.aim - soldier.cover) - soldier.hunkerbonus
             if alium.item1 == 2: #focusing lens
                 cthplayer += 20
-            
-            
-            if alium.cover == COVER_FLANKED:
-                if rd.randrange(0,100) <= 30:
+
+            if alium.cover < 20:
+                if rd.randrange(0,100) < 80:
                     move(alium,40)
-                else:
-                    move(alium,20)
-            elif alium.cover == COVER_NONE:
-                if rd.randrange(0,100) <= 80:
-                    move(alium,40)
-                elif rd.randrange(0,100) <= 40:
+                elif rd.randrange(0,100) < 40:
                     fire(alium,cthplayer)
                 else:
-        
                     move(alium,20)
-            elif alium.cover == COVER_HALF:
-                if cthplayer >= 50 + rd.randrange(0,20):
+            elif alium.cover < 40:
+                if cthplayer > 50 + rd.randrange(0,20):
                     fire(alium,cthplayer)
-                elif rd.randrange(0,100) <= 20:
+                elif rd.randrange(0,100) < 20:
                     if alium.item1 == 0:
                         nade(alium)
                     else:
                         fire(alium,cthplayer)
-                elif rd.randrange(0,100) <= 20:
-                    if rd.randrange(0,100) <= 50:
+                elif rd.randrange(0,100) < 20:
+                    if rd.randrange(0,100) < 50:
                         move(alium,40)
                     else:
                         move(alium,20)
@@ -1409,12 +1430,13 @@ def alienTurn():
                         fire(alium,cthplayer)
 
             else:
-                if cthplayer >= 30 + rd.randrange(0,20):
+                if cthplayer > 30 + rd.randrange(0,20):
                     fire(alium,cthplayer)
-                elif rd.randrange(0,100) <= 80:
+                elif rd.randrange(0,100) < 80:
                     move(alium,20)
                 else:
                     ow(alium)
+        s(.5)
 
 
 def checkDead(alium):
@@ -1613,7 +1635,6 @@ def mutate(i):
         x.nrank += 4
         x.refresh()
 
-
 # def main():
 p("Bradford", "Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
 p("Bradford", "Choose a soldier from the 3 below to go on the mission.")
@@ -1641,10 +1662,9 @@ elif soldier.lastname == VAN_DOORN:
 else:
     p(spk, "Ready for duty, Commander!")
 options = ["Sectoid","Thinman","Floater","Muton"]
-
 for i in range(30):
     pod = []
-    for j in range(3+rd.randrange(-2,2)):
+    for j in range(3+rd.randrange(-2,2+round(i/10))): #more aliens per room the further along you are
         x = Alien()
         pod.append(x)
     room.append(pod)
@@ -1672,12 +1692,41 @@ for i in range(30):
             x = rd.choice(room[i])
             mutate(i)
 
+############
+# scripted levels
+
+
+room[1] = []
+x = Alien()
+x.nrank = 0
+room[1].append(x)
+
+room[2] = []
+x = Alien()
+x.nrank = 0
+room[2].append(x)
+x = Alien()
+x.nrank = 0
+room[2].append(x)
+
+room[3] = []
+x = Alien()
+x.nrank = 0
+room[3].append(x)
+x = Alien()
+x.nrank = 1
+room[3].append(x)
+
 room[30] = []
 x = Alien()
 x.muton()
 x.nrank = 8
 x.refresh()
 x.hp = 50
+room[30].append(x)
+
+###########
+
 
 #generates the pods in each room
 room.append([])
@@ -1702,9 +1751,14 @@ while soldier.alive == True:
         # no more aliens in the room.
         if soldier.alive == True and old_room == roomNo                       \
            and len(room[roomNo]) > 0:
-            print("Alien Activity!")
-            s(2)
+            print()
+            print("--------------Alien Activity!--------------")
+            print()
+            s(1)
             alienTurn()
+            print()
+            print("--------------XCOM Turn--------------")
+            print()
     except ( ValueError or IndexError ):
         pass
     if roomNo == 31:
