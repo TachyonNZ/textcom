@@ -8,8 +8,14 @@ import time as tm
 
 SEX_FEMALE = 'f'
 SEX_MALE = 'm'
-XCOM_FEMALE_FIRSTNAME = [
+XCOM_MALE_FIRSTNAME = [
     'Bob',
+    'Grant',
+    'Dylan',
+    'Fletcher',
+    'Daniel',
+    'Kav',
+    'Jackson',
     'Alex',
     'Tim',
     'Peter',
@@ -19,9 +25,9 @@ XCOM_FEMALE_FIRSTNAME = [
     'Jeff',
     'Lee',
     'Iago',
-    'Soylent',
     'Dan',
     'John',
+    'Isaac',
     'Pedro',
     'Juan',
     'Rico',
@@ -33,8 +39,12 @@ XCOM_FEMALE_FIRSTNAME = [
     'Rocky',
     'Adam',
     'Bear',
+    'Paul',
+    'Guy',
+    'Sid',
+    'Murray'
 ]
-XCOM_MALE_FIRSTNAME = [
+XCOM_FEMALE_FIRSTNAME = [
     'Becks',
     'Kate',
     'Annetta',
@@ -58,25 +68,23 @@ XCOM_MALE_FIRSTNAME = [
     'Isabel',
     'Ana',
     'Laura',
-    'Sara'
+    'Sara',
+    'Emma',
+    'Rachael',
+    'Ingrid',
+    'Nicole',
+    'Chelsea',
+    'Chell'
 ]
 XCOM_LASTNAME = [
     'Meier',
-    'Dan Voorn',
     'Durant',
     'Lee',
     'Kerman',
     'Nilsen',
-    'Possible',
     'Fox',
-    'Vin Diern',
     'Vern Dern',
-    'Friendly',
-    'Civilian',
-    'Snek',
-    'Advint',
-    'Firaxi',
-    'Beegle',
+    'Beagle',
     'Green',
     'Wolf',
     'Grills',
@@ -87,7 +95,14 @@ XCOM_LASTNAME = [
     'Sherman',
     'Herman',
     'Nerman',
-    'Nuton'
+    'Nuton',
+    'Peterson',
+    'Clarke',
+    'French',
+    'Clark',
+    'Hayes',
+    'Munroe',
+    
 ]
 # <http://www.ufopaedia.org/index.php?title=Nicknames_%28EU2012%29>
 XCOM_UNISEX_NICKNAMES_ASSAULT = [
@@ -100,6 +115,7 @@ XCOM_UNISEX_NICKNAMES_ASSAULT = [
     'Chops',
     'Cobra',
     'Coney',
+    'Close Range',
     'D.O.A.',
     'DJ',
     'Desperado',
@@ -116,7 +132,9 @@ XCOM_UNISEX_NICKNAMES_ASSAULT = [
     'Mustang',
     'Pitbull',
     'Psycho',
+    'Rabid',
     'Rhino',
+    'Red Fox',
     'Septic',
     'Sheriff',
     'Shotsy',
@@ -131,7 +149,8 @@ XCOM_UNISEX_NICKNAMES_ASSAULT = [
     'Werewolf',
     'Wildchild',
     'Wolverine',
-    'Zilch'
+    'Zilch',
+    'Zap'
 ]
 XCOM_MALE_NICKNAMES_ASSAULT = [
     'Bull',
@@ -150,6 +169,7 @@ XCOM_FEMALE_NICKNAMES_ASSAULT = [
     'Wednesday',
 ]
 XCOM_UNISEX_NICKNAMES_HEAVY = [
+    '98',
     'Arcade',
     'Boom Boom',
     'Brick',
@@ -163,15 +183,19 @@ XCOM_UNISEX_NICKNAMES_HEAVY = [
     'Dozer',
     'Flash',
     'Hulk',
+    'Leaded',
     'Lights Out',
     'Nova',
     'Nuke',
+    'Painbringer',
     'Prototype',
     'Richter',
     'Road Block',
+    'Seismic',
     'Sledge',
     'Smokey',
     'Strobe',
+    'Terra',
     'Tectonic',
     'Thunder'
 ]
@@ -214,6 +238,7 @@ XCOM_UNISEX_NICKNAMES_SNIPER = [
     'Nix',
     'Omega',
     'Shadow',
+    'Snapsight'
     'Snake Eyes',
     'Solo',
     'Specter',
@@ -248,12 +273,12 @@ XCOM_UNISEX_NICKNAMES_SUPPORT = [
     'Axle',
     'Bonus',
     'Cargo',
+    'Carrier',
     'Combo',
     'Congo',
     'Doc',
     'Fast Lane',
     'Missionary',
-    'Ouija',
     'Pox',
     'Prophet',
     'Rogue',
@@ -304,43 +329,45 @@ XCOM_MALE_NICKNAMES_MEC = [
     'Marvin',
     'Murphy',
     'Olivaw',
+    'Ratchet',
     'Robby',
     'Ryle',
     'Stick',
+    'Sputnik',
     'Talos',
     'Tik-Tok',
     'Tin Can',
     'Vulcan'
 ]
 XCOM_FEMALE_NICKNAMES_MEC = [
-    'Beeps'
-    'Big Mommy'
-    'Freya'
-    'Friday'
-    'Gadget'
-    'Gizmo'
-    'Hadaly'
-    'Iris'
-    'Maya'
-    'Molly'
-    'Number Six'
-    'Orianna'
-    'Rosie'
-    'Vanessa'
-    'Vesta'
+    'Beeps',
+    'Big Mommy',
+    'Freya',
+    'Friday',
+    'Gadget',
+    'Gizmo',
+    'Hadaly',
+    'Iris',
+    'Maya',
+    'Molly',
+    'Number Six',
+    'Orianna',
+    'Rosie',
+    'Vanessa',
+    'Vesta',
 ]
 bradford = ["CLOSE RANGE?!","WHAT HAVE YOU DONE?!","COMMANDER!","WE'RE PICKING UP MULTIPLE CONTACTS!","CURRENT ENEMY STATUS AT THE SITE IS UNKNOWN!"]
 VAN_DOORN_QUOTES = [
-    "I'm the Ops team! I'll get over there!",
-    "I'll get down there! Only fair if I have all the fun.",
-    "I'm getting down there or what?",
+    "I'm the Ops team!",
+    "Only fair if I have all the fun.",
+    "Get down there!",
     "Come on! I won't go down without a fight.",
     # "Thank God you're here. I'm still breathing, but I can't say the same for a lot of my boys. Let's get out of here before any more of those things show up.",
-    # "I don't know what outfit you're from, but I haven't seen gear like that before.",
-    "I just hope I get another shot at these alien bastards... I owe it to my men.",
-    "I just wish I could have done more for my people, I lost some good men.",
-    "It's looking bad out there; I might not make if you don't show up.",
-    "I owe you one... seriously... I wouldn't be here without your help."
+    "I don't know what outfit you're from, but I haven't seen gear like that before.",
+    "Come on!",
+    "I won't go down without a fight!",
+    "It's looking bad...for you!",
+    "I owe you one."
 ]
 
 #Soldier names
@@ -350,13 +377,13 @@ bbspecies = ["Sectoid"]
 sectoidfName = ["Glip","Gleep","Glup","Glorp","Gloop","Glop","Glump","Glerp","Glurp","Glarp"]
 sectoidlName = ["Glop","Glarp","Glupple","Glorple","Gloopley","Glopperson","Glep","Glommery"]
 thinfName = ["T.","P.","H.","Z.","K.","A.","F.","X.","P.","L.","W.","S.","V."]
-thinlName = ["Hinman","Alium","Van Doom","Lmao","Notanalien","Anderson","Smith","Human","Clark","Warzonager","Iper","Thinmint","Mint","Spear"]
+thinlName = ["Hinman","Alium","Van Doom","Lmao","Notanalien","Anderson","Smith","Human","Clark","Warzonager","Iper","Thinmint","Mint","Spear","Infiltrator"]
 floaterfName = ["Dirk","Ferdinand","Frederick","Algernon","Angus","King","Cornelius","Francis","Christopher","Gustav","Richard","Ivan","Yuri","Vlad"]
 floaterlName = ["Meyer","Mleadeer","Peters","Prince","Vos","Wolf","Schwarz","Frank","Miller","Anderssen","Slavolav","Stroganov","Costarov"]
 
 #Aliem names
-mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy","Jimmy","Hank",""]
-mutonlName = ["Von Mooter","The Muton","Hugan","Jankins","Jefferson"]
+mutonfName = ["Pooter","Dave","Holk","Billy","Tim","Jeffery","Leeroy","Jimmy","Hank"]
+mutonlName = ["Von Mooter","The Muton","Hugan","Jankins","Jefferson","Higgins","Jenkins"]
 
 RANK_ROOKIE = 0
 RANK_SQUADDIE = 1
@@ -383,18 +410,18 @@ XCOM_RANKS = [
 ]
 ALIEN_RANKS = [
     "Peon",
+    "Guard",
     "Soldier",
     "Trooper",
+    "Warrior",
     "Officer",
     "Commander",
-    "Overseer",
-    "Supreme Commander",
-    "Uber",
-    "Trancendant"
+    "Elite",
+    "Uber"
 ]
 
 #when a soldier shoots at an alien
-retort = ("Suck on this!","Eat this!","Pick on someone your own size!","Take this!","Welcome to Earth!")
+retort = ("Suck on this!","Eat this!","Pick on someone your own size!","Take this!","Welcome to Earth!","AAGGHH!!!","HYAAA!")
 
 #human weapons + items
 items = {0:"Frag Grenade",1:"Nano Serum",2:"Scope",3:"Alien Grenade",999:"None"}
@@ -406,7 +433,7 @@ aitems = {0:"Alien Grenade",1:"Alloy Plating",2:"Focus Lens",999:"None"}
 
 pod = []
 room = []
-roomNo = -1
+roomNo = -0
 
 fragments = 0
 elerium = 0
@@ -590,7 +617,7 @@ class Soldier(Unit):
             middle = " '" + self.nickname + "' "
         p(0, XCOM_RANKS[self.nrank] + ' ' + self.firstname + middle           \
           + self.lastname + ' - ' + str(self.hp) + ' HP' + ' - '              \
-          + str(self.aim) + ' Aim')
+          + str(self.aim) + ' Aim'+ ' - ' +str(self.mobility) + ' AP')
         p(0, 'Items: ' + self.weapon.name + ', ' + items[self.items[0]] + ', '\
           + items[self.items[1]])
 
@@ -776,8 +803,8 @@ def playerTurn():
 
                 else:                   
                     p(spk,"Reached an access point, Commander. Requesting additional goods!")
-                    p(spk,"We only have a short time before they close the access point!")
-
+                    p(spk,"We only have a short time before the aliens close it off!")
+                    AP = 60
                     while AP != 0:
                         print("Fragments:",fragments)
                         print("Elerium:",elerium)
@@ -795,15 +822,15 @@ def playerTurn():
                                 action = a("int","#")
                             out = False
                             sel = invac[int(action)-1]
-                        print(sel)
                         if sel == "AimBonus":
                             soldier.mods.append("Aim")
                             soldier.aim += 5
                             meld -= 15
                             AP -= 60
+                            print("Depth Perception Insta-Genemod applied!")
                         elif sel == "HPBonus":
                             soldier.mods.append("HP")
-                            soldier.HP += 5
+                            soldier.hp += 5
                             meld -= 20
                             AP -= 60
                         elif sel == "APBonus":
@@ -831,16 +858,24 @@ def playerTurn():
                             soldier.items.append(0)
                             alloy -= 4
                             fragments -= 20
+                            AP -= 20
                         elif sel == "Meds":
                             soldier.items.append(1)
                             meld -= 10
                             fragments -= 10
+                            AP -= 20
                         elif sel == "Reload":
                             soldier.weapon.ammo = soldier.weapon.clip_size
                             AP -= 20
+                        elif sel == "Heal":
+                            soldier.hp += 1
+                            AP -= 20
                         elif sel == "Advance":
                             AP = 0
+                    p(spk,"All out of time! I'll have to keep moving!")
                     roomNo += 1
+                    checkspot(roomNo)
+                    scatter(roomNo)
                     playerTurn()
                         
             if action == "2":
@@ -884,18 +919,20 @@ def playerTurn():
                 AP = 0
             if sel == "Reposition":
                 AP -= 3
-                checkForOverwatch("Alium",0)
-                #if any aliens are on overwatch, check and be shot at if they are
-                soldier.cover = 40
                 if soldier.lastname == "Bradford":
                     p(spk, "Moving to...wait...that's CLOSE RANGE!")
                 elif soldier.lastname == VAN_DOORN:
                     p(spk, "Come on! I won't go down without a fight.")
                 else:
                     p(spk, "Moving to Full cover!")
+                checkForOverwatch("Alium",0)
+                soldier.cover = 40
+
+                #if any aliens are on overwatch, check and be shot at if they are
+
                 if rd.randrange(0,100) < 50:
                     alium = rd.choice(room[roomNo])
-                    p(0, str(alium) + 'is flanked!')
+                    p(0, str(alium) + ' is flanked!')
                     alium.cover = 0
                 #chance to flank an alien
 
@@ -951,7 +988,7 @@ def playerTurn():
                     p(0,"Missed!")
             elif sel == "Frag":
                 AP -= 10
-                p(0,"BAM!")
+                p(0,"*BAM!*")
                 #grenade, obviously
                 soldier.items.pop(soldier.items.index(0))
                 affected = room[roomNo]
@@ -1002,7 +1039,6 @@ def displayShop():
     global AP
     invac = []
     invacref = []
-    AP = 60
     print("Time: "+str(AP))
     invac.append("Advance")
     p(len(invac),"Advance")
@@ -1023,11 +1059,11 @@ def displayShop():
                 invac.append("NadeBonus")
                 p(len(invac),"(60 Time) (20m) Micro-Augment: Grenade Launcher (+2 Frag Grenades)")
     if AP >= 50:
-        if not soldier.weapon == LaserRifle() and elerium >= 20 and fragments >= 40:
+        if not type(soldier.weapon) is LaserRifle() and elerium >= 20 and fragments >= 40:
             invac.append("LaserRifle")
             p(len(invac),"(40 Time) (20e) (40f) Get Laser Rifle")
             print("     (~4dmg), infinite ammo")
-        if not soldier.weapon == LaserCarbine() and elerium >= 10 and fragments >= 30:
+        if not type(soldier.weapon) is LaserCarbine() and elerium >= 10 and fragments >= 30:
             invac.append("LaserCarbine")
             p(len(invac),"(40 Time) (10e) (30f) Get Laser Carbine")
             print("     (~3dmg), infinite ammo, +10% aim")
@@ -1088,29 +1124,35 @@ def checkForOverwatch(who,getalium):
 
 def fire(alium,cthplayer):
     if alium.alive == True:
-
-        p(0, str(alium) + ' fires at ' + str(soldier) + '(' + str(cthplayer) + '%)')
-        dmg = alium.shoot()
-        if rd.randrange(0,100) < cthplayer:
-            p(0,str(dmg)+" damage!")
-            soldier.hp -= dmg
-            checkPlayerDead()
-            #did you kill the player, alien?
+        if cthplayer > 0:
+            p(0, str(alium) + ' fires at ' + str(soldier) + '(' + str(cthplayer) + '%)')
+            dmg = alium.shoot()
+            if rd.randrange(0,100) < cthplayer:
+                p(0,str(dmg)+" damage!")
+                soldier.hp -= dmg
+                checkPlayerDead()
+                #did you kill the player, alien?
+            else:
+                p(0,"Missed!")
         else:
-            p(0,"Missed!")
+            if rd.randrange(0,100) < 80:
+                ow(alium)
+            else:
+                if alium.item1 == 0:
+                    nade(alium)
 
 
 def nade(alium):
     if alium.alive == True:
-
-        p(0, str(alium) + ' uses Alien Grenade!')
-        p(0,"**BLAM!**")
-        alium.item1 = 999
-        #sets the aliens item to 'none', no more grenades for you
-        p(0,"3 damage!")
-        soldier.cover = 20
-        soldier.hp -= 3
-        checkPlayerDead()
+        if alium.item1 == 0:
+            p(0, str(alium) + ' uses Alien Grenade!')
+            p(0,"**BLAM!**")
+            alium.item1 = 999
+            #sets the aliens item to 'none', no more grenades for you
+            p(0,"3 damage!")
+            soldier.cover = 20
+            soldier.hp -= 3
+            checkPlayerDead()
 
 
 def ow(alium):
@@ -1139,7 +1181,7 @@ def alienTurn():
             i = 0
         #because something may have happened that causes an index error
         if alium.alive == True and soldier.alive == True:
-            cthplayer = alium.aim - soldier.cover - soldier.hunkerbonus
+            cthplayer = (alium.aim - soldier.cover) - soldier.hunkerbonus
             if alium.item1 == 2: #focusing lens
                 cthplayer += 20
 
@@ -1151,12 +1193,14 @@ def alienTurn():
                 else:
                     move(alium,20)
             if alium.cover < 40:
-                if cthplayer > 50 + rd.randrange(0,40):
+                if cthplayer > 50 + rd.randrange(0,20):
                     fire(alium,cthplayer)
                 elif rd.randrange(0,100) < 20:
                     if alium.item1 == 0:
                         nade(alium)
-                elif rd.randrange(0,100) < 40:
+                    else:
+                        fire(alium,cthplayer)
+                elif rd.randrange(0,100) < 20:
                     if rd.randrange(0,100) < 50:
                         move(alium,40)
                     else:
@@ -1170,7 +1214,7 @@ def alienTurn():
                         fire(alium,cthplayer)
 
             else:
-                if cthplayer > 80 + rd.randrange(0,20):
+                if cthplayer > 30 + rd.randrange(0,20):
                     fire(alium,cthplayer)
                 elif rd.randrange(0,100) < 80:
                     move(alium,20)
@@ -1192,14 +1236,24 @@ def checkDead(alium):
 def checkPlayerDead():
     if soldier.hp <= 0:
         p(0, str(soldier) + ' was killed!')
-        p("Bradford","Commander, our unit was killed.")
-        p("Bradford","We were able to recover some materials, however.")
-        print("Fragments:",fragments)
-        print("Elerium:",elerium)
-        print("Meld:",meld)
-        print("Alloy:",alloy)
-        print('Total Score: ' + str(fragments + elerium + meld + alloy        \
+        if not soldier.lastname == "Bradford":
+
+            p("Bradford","Commander, our unit was killed.")
+            p("Bradford","We were able to recover some materials, however.")
+            print("Fragments:",fragments)
+            print("Elerium:",elerium)
+            print("Meld:",meld)
+            print("Alloy:",alloy)
+            print('Total Score: ' + str(fragments + elerium + meld + alloy        \
                                  + soldier.xp + roomNo))
+        else:
+            p("Council Member","Commander...you 'volunteered' your Central Officer to fight on the front lines.")
+            p("Council Member","This was a foolish endeavour, and as a result, you lost him.")
+            print('Monthly Rating: F')
+            p("Council Member","We have negotiated...a deal with the aliens, and so...your services are no longer required.")
+            p("Council Member","We are...terminating the XCOM Project, effective...immediately.")
+
+
         soldier.alive = False
         quit
         #doesn't want to stop the whole game straight away for some reason
@@ -1371,7 +1425,7 @@ def displayOptions():
 
 def drop():
     itemdrop = rd.randrange(0,5)
-    if rd.randrange(1,100) < 5:
+    if rd.randrange(1,100) <= 5:
         p(spk,"Recovered a "+drops[itemdrop]+"!")
         if itemdrop == 3:
             soldier.weapon = PlasmaCarbine()
@@ -1379,9 +1433,6 @@ def drop():
             soldier.weapon = PlasmaRifle()
         else:
             soldier.items.append(itemdrop)
-
-def craft(item):
-    pass
 
 def mutate(i):
     if i <= 3:
