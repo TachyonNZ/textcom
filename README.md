@@ -12,7 +12,7 @@ As you kill more aliens, you can level up your soldier, gaining loot and bonus s
 **Next steps:**
 
 
-This is a very early version of the game, so there are lots of bugs and the code is fairly disorganised. If you have any suggestions, don't hesitate to tell me, as the game can go a lot of direction at the moment.
+More aliens, more weapons, upgrades, 'shops'!
 
 
 -/u/TachyonNZ
