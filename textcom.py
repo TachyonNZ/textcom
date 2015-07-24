@@ -942,7 +942,7 @@ def create_alien(alien_id, room_index, species, **kwargs):
     if not 'items' in kwargs:
         kwargs['items'] = [rd.choice([ITEM_ALIEN_GRENADE,
                                       ITEM_ALLOY_PLATING,
-                                      ITEM_FOCUS_LENS])
+                                      ITEM_SCOPE])
                           ]
     if not 'mods' in kwargs:
         kwargs['mods'] = []
@@ -1638,48 +1638,6 @@ def drop():
             soldier.weapon = PlasmaRifle()
         else:
             soldier.items.append(itemdrop)
-
-def mutate(i, aid):
-    alien = room[i][aid]
-    options = ["Sectoid", "Thinman", "Floater", "Muton"]
-    if i <= 3:
-        pass
-    elif i > 3 and i < 10:
-        y = options[rd.randrange(0,2)]
-        if y == "Thinman":
-            alien = create_alien(alien.aid, i, 'Thinman')
-        alien.nrank += 1
-        alien.refresh()
-    elif i > 9 and i < 15:
-        y = rd.choice(options)
-        if y == "Thinman":
-            alien = create_alien(alien.aid, i, 'Thinman')
-        if y == "Floater":
-            alien = create_alien(alien.aid, i, 'Floater')
-        if y == "Muton":
-            alien = create_alien(alien.aid, i, 'Muton')
-            alien.nrank -= 2
-        alien.nrank += 3
-        alien.refresh()
-    elif i > 14:
-        y = options[rd.randrange(1,4)]
-        if y == "Thinman":
-            alien = create_alien(alien.aid, i, 'Thinman')
-        if y == "Floater":
-            alien = create_alien(alien.aid, i, 'Floater')
-        if y == "Muton":
-            alien = create_alien(alien.aid, i, 'Muton')
-        x.nrank += 4
-        alien.refresh()
-    elif i > 16:
-        y = options[rd.randrange(2,4)]
-        if y == "Muton":
-            alien = create_alien(alien.aid, i, 'Muton')
-        if y == "Floater":
-            alien = create_alien(alien.aid, i, 'Floater')
-        alien.nrank += 4
-        alien.refresh()
-    room[i][aid] = alien
 
 
 def create_map(scripted_levels):
