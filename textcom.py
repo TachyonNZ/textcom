@@ -436,7 +436,6 @@ drops = {0:"Frag Grenade",1:"Nano Serum",2:"Alien Grenade",3:"Light Plasma Rifle
 
 #aliem weapons, items and powers
 apowers = {0: "Mindfray",1: "Psi Boost"}
-aitems = {0:"Alien Grenade",1:"Alloy Plating",2:"Focus Lens",999:"None"}
 
 #########
 # Cover #
@@ -658,11 +657,17 @@ class Medkit(Item):
         print("HP restored.")
         soldier.hp += 4
 
-
+# XCOM items
 ITEM_SCOPE = Item('Scope', 0, 'Increase aim')
 ITEM_FRAG_GRENADE = Explosive('Frag Grenade', 10, 2, 'BAM!')
 ITEM_ALIEN_GRENADE = Explosive('Alien Grenade', 15, 4, '**BLAM**!')
 ITEM_MEDKIT = Medkit()
+
+# Alien items
+# Alien grenade is also available to XCOM
+ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increase defense')
+# maybe replace by ITEM_SCOPE?
+ITEM_FOCUS_LENS = Item('Focus Lens', 0, 'Increase aim')
 
 ########################################################################
 # unit classes                                                         #
@@ -677,12 +682,13 @@ class Unit:
         self.nrank = nrank
         self.firstname = firstname
         self.lastname = lastname
+        self.armour = armour
         self.weapon = weapon
         self.items = items
+        self.mods = mods
         self.cover = 0
         self.overwatch = False
         self.alive = True
-        self.mods = []
 
     def reload(self):
         self.weapon.reload()
@@ -752,71 +758,103 @@ class Soldier(Unit):
 #we define the aliens here. they are initialised as sectoids but this can be changed with the definitions, such
 #as thinman(), to convert the alien to a thinman
 class Alien(Unit):
-    # self, hp, aim, mobility, rank, firstname, lastname, armour, weapon, items
-    def __init__(self):
-        super().__init__(0, 0, 0, '', '', '', 'BDY', None, [],[])
-        self.species = "Sectoid"
-        self.firstname = rd.choice(sectoidfName)
-        self.aID = len(pod)
-        self.lastname = rd.choice(sectoidlName)
-        self.nrank = round(rd.randrange(0+round(roomNo/20),2))
-        self.hp = 2 + self.nrank
-        self.aim = rd.randrange(50, 75) + self.nrank
-        self.mobility = rd.randrange(9, 13) + self.nrank
-        self.weapon = PlasmaPistol()
-        self.secondary = PlasmaPistol()
-        self.item1 = rd.randrange(0,3)
-        self.alive = True
-    def thinman(self):
-        self.ammo = 1
-        self.species = "Thin Man"
-        self.firstname = rd.choice(thinfName)
-        self.aID = len(pod)
-        self.lastname = rd.choice(thinlName)
-        self.nrank = round(rd.randrange(0, 3))
-        self.hp = 3 + self.nrank
-        self.aim = rd.randrange(60, 80) + self.nrank
-        self.mobility = rd.randrange(12, 15) + self.nrank
-        self.weapon = PlasmaCarbine()
-        self.item1 = rd.randrange(0,3)
-        self.armour = "BDY" #body armour
-        self.alive = True
-    def floater(self):
-        self.ammo = 1
-        self.species = "Floater"
-        self.firstname = rd.choice(floaterfName)
-        self.aID = len(pod)
-        self.lastname = rd.choice(floaterlName)
-        self.nrank = round(rd.randrange(0 + round(roomNo / 10), 3))
-        self.item1 = rd.randrange(0,3)
-        self.hp = 4 + self.nrank
-        self.aim = rd.randrange(50, 70) + self.nrank
-        self.weapon = PlasmaCarbine()
-        self.mobility = rd.randrange(12, 15) + self.nrank
-        self.armour = "BDY" #body armour
-        self.alive = True
-    def muton(self):
-        self.ammo = 1
-        self.species = "Muton"
-        self.firstname = rd.choice(mutonfName)
-        self.aID = len(pod)
-        self.lastname = rd.choice(mutonlName)
-        self.nrank = round(rd.randrange(0 + round(roomNo / 10), 3))
-        self.item1 = rd.randrange(0,3)
-        self.hp = 8 + self.nrank
-        self.aim = rd.randrange(50, 60) + self.nrank
-        self.mobility = rd.randrange(10, 12) + self.nrank
-        self.weapon = PlasmaRifle()
-        self.armour = "BDY" #body armour
-        self.alive = True
-    def refresh(self):
-        self.hp += self.nrank * round(rd.random() * 2)
-        self.aim  +=  self.nrank * round(rd.random() * 2)
+    def __init__(self, alien_id, species, hp, aim, mobility, nrank, firstname,\
+                 lastname, armour, weapon, items, mods):
+        super().__init__(hp, aim, mobility, nrank, firstname, lastname,       \
+                         armour, weapon, items, mods)
+        self.aid = alien_id
+        self.species = species
 
     #gives us names for when we reference the alien in game
     def __str__(self):
         return '(' + self.species + ') ' + ALIEN_RANKS[self.nrank] + ' '      \
                + self.firstname + " " + self.lastname
+
+    def refresh(self):
+        self.hp += self.nrank * round(rd.random() * 2)
+        self.aim  +=  self.nrank * round(rd.random() * 2)
+
+
+SPECIES_RANK_FUNC = 0
+SPECIES_HP_BASE = 1
+SPECIES_AIM_RANGE = 2
+SPECIES_MOBILITY_RANGE = 3
+SPECIES_WEAPON_CLASS = 4
+SPECIES_FIRSTNAME = 5
+SPECIES_LASTNAME = 6
+
+# Species data table, used to construct aliens with the `create_alien`
+# function with keywords
+# rank function, hp base, aim base range, mobility base range,
+#     primary weapon class, firstname table, lastname table
+ALIEN_SPECIES = {
+    'Sectoid': [
+        lambda nroom: round(rd.randrange(round(nroom / 20), 2)),
+        2, (50, 75), (9, 13), PlasmaPistol, sectoidfName, sectoidlName
+    ],
+    'Thinman': [
+        lambda nroom: round(rd.randrange(round(nroom / 20), 2)),
+        3, (60, 80), (12, 15), PlasmaCarbine, thinfName, thinlName
+    ],
+    'Floater': [
+        lambda nroom: round(rd.randrange(round(nroom / 12), 3)),
+        4, (50, 70), (12, 15), PlasmaCarbine, floaterfName, floaterlName
+    ],
+    'Muton': [
+        lambda nroom: round(rd.randrange(round(nroom / 12), 3)),
+        8, (50, 60), (10, 12), PlasmaRifle, mutonfName, mutonlName
+    ]
+}
+
+
+def create_alien(alien_id, room_index, species, **kwargs):
+    '''
+    Create a alien with random stats or stats supplied by keywords
+
+    Returns a new alien with the stats read from kwargs, or if the stat
+    is not contained in there, random stats according to the
+    `ALIEN_SPECIES` table.
+    '''
+    if species not in ALIEN_SPECIES:
+        raise Exception('Unknown alien species')
+
+    # the rank may be used for other values, so it is set differently
+    nrank = 0
+    if not 'nrank' in kwargs:
+        nrank = ALIEN_SPECIES[species][SPECIES_RANK_FUNC](room_index)
+        kwargs['nrank'] = nrank
+    else:
+        nrank = kwargs['nrank']
+
+    if not 'hp' in kwargs:
+        kwargs['hp'] = ALIEN_SPECIES[species][SPECIES_HP_BASE] + nrank
+    if not 'aim' in kwargs:
+        kwargs['aim'] =                                                       \
+            rd.randrange(*ALIEN_SPECIES[species][SPECIES_AIM_RANGE]) + nrank
+    if not 'mobility' in kwargs:
+        kwargs['mobility'] =                                                  \
+            rd.randrange(*ALIEN_SPECIES[species][SPECIES_MOBILITY_RANGE])     \
+            + nrank
+    if not 'firstname' in kwargs:
+        kwargs['firstname'] =                                                 \
+            rd.choice(ALIEN_SPECIES[species][SPECIES_FIRSTNAME])
+    if not 'lastname' in kwargs:
+        kwargs['lastname'] =                                                  \
+            rd.choice(ALIEN_SPECIES[species][SPECIES_LASTNAME])
+    if not 'armour' in kwargs:
+        kwargs['armour'] = 'BDY'
+    if not 'weapon' in kwargs:
+        kwargs['weapon'] = ALIEN_SPECIES[species][SPECIES_WEAPON_CLASS]()
+    if not 'items' in kwargs:
+        kwargs['items'] = [rd.choice([ITEM_ALIEN_GRENADE,
+                                      ITEM_ALLOY_PLATING,
+                                      ITEM_FOCUS_LENS])
+                          ]
+    if not 'mods' in kwargs:
+        kwargs['mods'] = []
+
+    return Alien(alien_id, species, **kwargs)
+
 
 ###########
 # actions #
@@ -972,7 +1010,7 @@ class FireAction(Action):
         self._calc_ap()
         damage = self.soldier.shoot()
         p(spk, self.soldier.get_retort())
-        
+
         p(0, self.soldier.weapon.get_sound())
         s(.5)
         roll = rd.randrange(0, 100)
@@ -1037,7 +1075,7 @@ class RepositionAction(Action):
         #chance to flank an alien
         if rd.randrange(0, 100) < 50:
             alien = rd.choice(room[roomNo])
-            
+
             p(0, str(alien) + ' is flanked!')
             alien.cover = COVER_FLANKED # TODO: flanked should be worse than no cover
 
@@ -1195,7 +1233,7 @@ def playerTurn():
     overwatch_action = OverwatchAction(soldier)
     reload_action = ReloadAction(soldier)
     reposition_action = RepositionAction(soldier)
-    
+
     #maybe just have these as def's instead of classes?
 
     # while the player has spare action points left
@@ -1301,7 +1339,7 @@ def checkForOverwatch(who,getalium):
             if alium.overwatch == 1:
                 p(0, str(alium) + ' reacts!')
                 s(1)
-                if alium.item1 == 2:
+                if ITEM_FOCUS_LENS in alium.items:
                     cthplayer += 10
                 if rd.randrange(0,100) < cthplayer:
                     dmg = alium.shoot()
@@ -1342,7 +1380,7 @@ def fire(alium,cthplayer):
                 p(0,str(dmg)+" damage!")
                 soldier.hp -= dmg
                 checkPlayerDead()
-                
+
                 #did you kill the player, alien?
             else:
                 p(0,"Missed!")
@@ -1350,23 +1388,24 @@ def fire(alium,cthplayer):
             if rd.randrange(0,100) < 80:
                 ow(alium)
             else:
-                if alium.item1 == 0:
+                if ITEM_ALIEN_GRENADE in alium.items:
                     nade(alium)
 
 
 def nade(alium):
+    if ITEM_ALIEN_GRENADE not in alium.items:
+        raise Exception('No grenade in inventory')
     if alium.alive == True:
-        if alium.item1 == 0:
-            p(0, str(alium) + ' uses Alien Grenade!')
-            s(.5)
-            p(0,"**BLAM!**")
-            s(.5)
-            alium.item1 = 999
-            #sets the aliens item to 'none', no more grenades for you
-            p(0,"3 damage!")
-            soldier.cover = 20
-            soldier.hp -= 3
-            checkPlayerDead()
+        p(0, str(alium) + ' uses Alien Grenade!')
+        s(.5)
+        p(0, '**BLAM!**')
+        s(.5)
+        del alium.items[alium.items.index(ITEM_ALIEN_GRENADE)]
+        #sets the aliens item to 'none', no more grenades for you
+        p(0, '3 damage!')
+        soldier.cover = 20
+        soldier.hp -= 3
+        checkPlayerDead()
 
 
 def ow(alium):
@@ -1398,7 +1437,7 @@ def alienTurn():
         #because something may have happened that causes an index error
         if alium.alive == True and soldier.alive == True:
             cthplayer = (alium.aim - soldier.cover) - soldier.hunkerbonus
-            if alium.item1 == 2: #focusing lens
+            if ITEM_FOCUS_LENS in alium.items:
                 cthplayer += 20
 
             if alium.cover < 20:
@@ -1412,7 +1451,7 @@ def alienTurn():
                 if cthplayer > 50 + rd.randrange(0,20):
                     fire(alium,cthplayer)
                 elif rd.randrange(0,100) < 20:
-                    if alium.item1 == 0:
+                    if ITEM_ALIEN_GRENADE in alium.items:
                         nade(alium)
                     else:
                         fire(alium,cthplayer)
@@ -1573,11 +1612,11 @@ def getLoot(alium):
     fragments += abs(alium.hp)
     elerium += alium.nrank
     meld += 2 * alium.nrank
-    if alium.item1 == 0:
+    if ITEM_ALIEN_GRENADE in alium.items:
         elerium += 2
-    elif alium.item1 == 1:
+    elif ITEM_ALLOY_PLATING in alium.items:
         alloy += 2
-    elif alium.item1 == 2:
+    elif ITEM_FOCUS_LENS in alium.items:
         fragments += 2
     e, f = alium.weapon.get_materials()
     elerium += e
@@ -1596,44 +1635,47 @@ def drop():
         else:
             soldier.items.append(itemdrop)
 
-def mutate(i):
+def mutate(i, aid):
+    alien = room[i][aid]
+    options = ["Sectoid", "Thinman", "Floater", "Muton"]
     if i <= 3:
         pass
     elif i > 3 and i < 10:
         y = options[rd.randrange(0,2)]
         if y == "Thinman":
-            x.thinman()
-        x.nrank += 1
-        x.refresh()
+            alien = create_alien(alien.aid, i, 'Thinman')
+        alien.nrank += 1
+        alien.refresh()
     elif i > 9 and i < 15:
         y = rd.choice(options)
         if y == "Thinman":
-            x.thinman()
+            alien = create_alien(alien.aid, i, 'Thinman')
         if y == "Floater":
-            x.floater()
+            alien = create_alien(alien.aid, i, 'Floater')
         if y == "Muton":
-            x.muton()
-            x.nrank -= 2
-        x.nrank += 3
-        x.refresh()
+            alien = create_alien(alien.aid, i, 'Muton')
+            alien.nrank -= 2
+        alien.nrank += 3
+        alien.refresh()
     elif i > 14:
         y = options[rd.randrange(1,4)]
         if y == "Thinman":
-            x.thinman()
+            alien = create_alien(alien.aid, i, 'Thinman')
         if y == "Floater":
-            x.floater()
+            alien = create_alien(alien.aid, i, 'Floater')
         if y == "Muton":
-            x.muton()
+            alien = create_alien(alien.aid, i, 'Muton')
         x.nrank += 4
-        x.refresh()
+        alien.refresh()
     elif i > 16:
         y = options[rd.randrange(2,4)]
         if y == "Muton":
-            x.muton()
+            alien = create_alien(alien.aid, i, 'Muton')
         if y == "Floater":
-            x.floater()
-        x.nrank += 4
-        x.refresh()
+            alien = create_alien(alien.aid, i, 'Floater')
+        alien.nrank += 4
+        alien.refresh()
+    room[i][aid] = alien
 
 # def main():
 p("Bradford", "Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
@@ -1661,72 +1703,53 @@ elif soldier.lastname == VAN_DOORN:
     p(spk, "I'm the Ops team?")
 else:
     p(spk, "Ready for duty, Commander!")
-options = ["Sectoid","Thinman","Floater","Muton"]
+
 for i in range(30):
     pod = []
     for j in range(3+rd.randrange(-2,2+round(i/10))): #more aliens per room the further along you are
-        x = Alien()
-        pod.append(x)
+        pod.append(create_alien(j, i, 'Sectoid'))
     room.append(pod)
     for j in range(len(room[i])):
         if i < 10:
-            x = rd.choice(room[i])
-            mutate(i)
+            aid = room[i].index(rd.choice(room[i]))
+            mutate(i, aid)
         elif i < 15:
-            x = rd.choice(room[i])
-            mutate(i)
-            x = rd.choice(room[i])
-            mutate(i)
+            for _ in range(2):
+                aid = room[i].index(rd.choice(room[i]))
+                mutate(i, aid)
         elif i < 20:
-            x = rd.choice(room[i])
-            mutate(i)
-            x = rd.choice(room[i])
-            mutate(i)
-            x = rd.choice(room[i])
-            mutate(i)
+            for _ in range(3):
+                aid = room[i].index(rd.choice(room[i]))
+                mutate(i, aid)
         else:
-            x = rd.choice(room[i])
-            mutate(i)
-            x = rd.choice(room[i])
-            mutate(i)
-            x = rd.choice(room[i])
-            mutate(i)
+            for _ in range(4):
+                aid = room[i].index(rd.choice(room[i]))
+                mutate(i, aid)
 
 ############
 # scripted levels
 
 
 room[1] = []
-x = Alien()
-x.nrank = 0
+x = create_alien(1, 1, 'Sectoid', nrank=0)
 room[1].append(x)
 
 room[2] = []
-x = Alien()
-x.nrank = 0
+x = create_alien(1, 2, 'Sectoid', nrank=0)
 room[2].append(x)
-x = Alien()
-x.nrank = 0
+x = create_alien(2, 2, 'Sectoid', nrank=0)
 room[2].append(x)
 
 room[3] = []
-x = Alien()
-x.nrank = 0
+x = create_alien(1, 3, 'Sectoid', nrank=0)
 room[3].append(x)
-x = Alien()
-x.nrank = 1
+x = create_alien(2, 3, 'Sectoid', nrank=1)
 room[3].append(x)
 
 room[30] = []
-x = Alien()
-x.muton()
-x.nrank = 8
+x = create_alien(1, 30, 'Muton', nrank=8, hp=50)
 x.refresh()
-x.hp = 50
 room[30].append(x)
-
-###########
-
 
 #generates the pods in each room
 room.append([])
