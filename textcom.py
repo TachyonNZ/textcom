@@ -1202,12 +1202,10 @@ def playerTurn():
     while soldier.ap > 0 and soldier.alive == True:
         # displays stats
         p(0, 'HP: ' + str(soldier.hp) + '\tAP: ' + str(soldier.ap))
-        if rd.randrange(0,100) < 30:
+        if soldier.cover >= 40:
             p(0, str(soldier) + ' is in FULL cover.')
-            soldier.cover = 40
-        else:
+        elif soldier.cover <= 20:
             p(0, str(soldier) + ' is in HALF cover.')
-            soldier.cover = 20
         actions = []
         if len(room[roomNo]) == 0:
             actions.append(advance_action)
@@ -1589,12 +1587,17 @@ def drop():
     itemdrop = rd.randrange(0,5)
     if rd.randrange(1,100) <= 5:
         p(spk,"Recovered a "+drops[itemdrop]+"!")
-        if itemdrop == 3:
+        if itemdrop == 0:
+            soldier.items.append(ITEM_FRAG_GRENADE)
+        elif itemdrop == 1:
+            soldier.items.append(ITEM_MEDKIT)
+        elif itemdrop == 5:
+            soldier.items.append(ITEM_ALIEN_GRENADE)
+        elif itemdrop == 3:
             soldier.weapon = PlasmaCarbine()
-        if itemdrop == 4:
+        elif itemdrop == 4:
             soldier.weapon = PlasmaRifle()
-        else:
-            soldier.items.append(itemdrop)
+
 
 def mutate(i):
     if i <= 3:
@@ -1743,6 +1746,7 @@ while soldier.alive == True:
     try:
         old_room = roomNo
         playerTurn()
+        soldier.items.append(ITEM_ALIEN_GRENADE)
         p(0, str(soldier) + ' is out of AP!')
 
         # Aliens are not allowed to act after the room was changed,
