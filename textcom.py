@@ -493,8 +493,12 @@ class Weapon:
 
     def reload(self):
         self.ammo = self.clip_size
+        s(0.5)
 
     def shoot(self):
+        s(0.5)
+        print(self.get_sound())
+        s(0.5)
         if (self.ammo == 0):
             print('Out of ammo')
             return 0
@@ -649,7 +653,7 @@ class Explosive(Item):
                 elerium += getLoot(alien)[1]
                 meld += getLoot(alien)[2]
                 alloy += getLoot(alien)[3]
-                checkDead(alien)
+                alien.check_death()
             except (IndexError):
                 i = 0 #reset the loop
 
@@ -671,8 +675,6 @@ ITEM_MEDKIT = Medkit()
 # Alien items
 # Alien grenade is also available to XCOM
 ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increase defense')
-# maybe replace by ITEM_SCOPE?
-ITEM_FOCUS_LENS = Item('Focus Lens', 0, 'Increase aim')
 
 ########################################################################
 # unit classes                                                         #
@@ -692,14 +694,80 @@ class Unit:
         self.items = items
         self.mods = mods
         self.cover = 0
-        self.overwatch = False
+        self.on_overwatch = False
         self.alive = True
+
+    def _handle_overwatch(self, target):
+        '''
+        Generic overwatch handler which shoots at the target
+        '''
+        return self.shoot_at(target, 10)
+
+    def aim_at(self, target):
+        hit_chance = self.aim - target.cover
+        if ITEM_SCOPE in self.items:
+            hit_chance += 10
+        # Carbines get an aim bonus
+        if type(self.weapon) is BallisticCarbine                              \
+           or type(soldier.weapon) is LaserCarbine                            \
+           or type(self.weapon) is PlasmaCarbine:
+            hit_chance += 10
+        if hit_chance < 0:
+            hit_chance = 5
+        if hit_chance > 100:
+            hit_chance = 95
+        return hit_chance
+
+    def check_death(self):
+        '''
+        Check for unit death and call death handler, if unit is dead.
+
+        If the unit is not dead, `False` is returned and nothing
+        happens, else the `_handle_death` method implemented by the
+        subclass is called.
+        '''
+        if self.hp <= 0:
+            self._handle_death()
+            return True
+        return False
+
+    def overwatch(self, target):
+        '''
+        Perform overwatch reaction if unit is on overwatch.
+
+        If the unit is on overwatch, the `_handle_overwatch` method is
+        called (overwrite this to customize the overwatch handling) and
+        `True` is returned, else `False` is returned and nothing
+        happens.
+        '''
+        if self.on_overwatch:
+            self.on_overwatch = False
+            p(0, str(self) + ' reacts!')
+            self._handle_overwatch(target)
+            return True
+        return False
 
     def reload(self):
         self.weapon.reload()
 
-    def shoot(self):
-        return self.weapon.shoot()
+    def shoot_at(self, target, situation_modificator=0):
+        '''
+        Perform an attack at the target
+
+        Returns `True` if the target was hit, `False` otherwise.  If the
+        target was hit, hit points are discounted and the death check is
+        performed.
+        '''
+        hit_chance = self.aim_at(target) + situation_modificator
+        damage = self.weapon.shoot()
+        if rd.randrange(0, 100) < hit_chance:
+            p(0, str(damage) + ' damage!')
+            target.hp -= damage
+            target.check_death()
+            return True
+        else:
+            p(0, ' Missed!')
+        return False
 
 
 class Soldier(Unit):
@@ -722,20 +790,33 @@ class Soldier(Unit):
             middle = " '" + self.nickname + "' "
         return XCOM_RANKS[self.nrank] + middle + self.lastname
 
-    def aim_at(self, target):
-        hit_chance = self.aim - target.cover
-        if ITEM_SCOPE in self.items:
-            hit_chance += 10
-        # Carbines get an aim bonus
-        if type(self.weapon) is BallisticCarbine                              \
-           or type(soldier.weapon) is LaserCarbine                            \
-           or type(self.weapon) is PlasmaCarbine:
-            hit_chance += 10
-        if hit_chance < 0:
-            hit_chance = 5
-        if hit_chance > 100:
-            hit_chance = 95
-        return hit_chance
+    def _handle_death(self):
+        soldier.alive = False
+        p(0, str(soldier) + ' was killed!')
+        if not soldier.lastname == "Bradford":
+            p("Bradford", "Commander, our unit was killed.")
+            p("Bradford", "We were able to recover some materials, however.")
+            print("Fragments:", fragments)
+            print("Elerium:", elerium)
+            print("Meld:", meld)
+            print("Alloy:", alloy)
+            print('Total Score: ' + str(fragments + elerium + meld + alloy    \
+                                        + soldier.xp + roomNo))
+        else:
+            p("Council Member",
+              "Commander...you 'volunteered' your Central Officer to fight on the front lines.")
+            p("Council Member","This was a foolish endeavour, and as a result, you lost him.")
+            print('Monthly Rating: F')
+            p("Council Member",
+              "We have negotiated...a deal with the aliens, and so...your services are no longer required.")
+            p("Council Member",
+              "We are...terminating the XCOM Project, effective...immediately.")
+        #doesn't want to stop the whole game straight away for some reason
+        quit
+
+    def _handle_overwatch(self, target):
+        if super()._handle_overwatch(target) == False:
+            p(spk, self.get_overwatch_miss_retort())
 
     def get_overwatch_confirmation(self):
         return 'Got it, on Overwatch.'
@@ -774,6 +855,15 @@ class Alien(Unit):
     def __str__(self):
         return '(' + self.species + ') ' + ALIEN_RANKS[self.nrank] + ' '      \
                + self.firstname + " " + self.lastname
+
+    def _handle_death(self):
+        #kills, loots and removes the alien from the game
+        p(0, str(self) + ' died!')
+        getLoot(self)
+        drop()
+        checkXP()
+        self.alive = False
+        room[roomNo].pop(room[roomNo].index(self))
 
     def refresh(self):
         self.hp += self.nrank * round(rd.random() * 2)
@@ -1012,23 +1102,12 @@ class FireAction(Action):
         global meld
 
         self._calc_ap()
-        damage = self.soldier.shoot()
         p(spk, self.soldier.get_retort())
-
-        p(0, self.soldier.weapon.get_sound())
-        s(.5)
-        roll = rd.randrange(0, 100)
-        if roll <= self.hit_chance + 10:
-            self.target.hp -= damage
-            p(0, str(damage) + ' damage!')
+        if self.soldier.shoot_at(self.target):
             fragments += getLoot(self.target)[0]
             elerium += getLoot(self.target)[1]
             meld += getLoot(self.target)[2]
             alloy += getLoot(self.target)[3]
-            checkDead(self.target)
-        else:
-            p(0,'Missed!')
-        s(.5)
 
 
 class HunkerDownAction(Action):
@@ -1052,7 +1131,7 @@ class OverwatchAction(Action):
         p(spk, self.soldier.get_overwatch_confirmation())
         s(.5)
         self.soldier.ap = 0 # TODO check if this is necessary
-        self.soldier.overwatch = True
+        self.soldier.on_overwatch = True
 
 
 class ReloadAction(Action):
@@ -1072,7 +1151,7 @@ class RepositionAction(Action):
     def perform(self):
         self._calc_ap()
         # if any aliens are on overwatch, check and be shot at if they are
-        checkForOverwatch("Alium", 0) # ?!
+        check_for_alien_overwatch()
         self.soldier.cover = 40 # ?!
         p(spk, self.soldier.get_reposition_confirmation())
         s(.5)
@@ -1227,7 +1306,7 @@ def prompt_player(actions):
 #ah, the player's turn.
 def playerTurn():
     soldier.ap = soldier.mobility
-    soldier.overwatch = False
+    soldier.on_overwatch = False
     soldier.hunkerbonus = 0
 
     # currently redundant and inefficient
@@ -1335,59 +1414,17 @@ def displayShop(ap):
     return options[selection - 1]
 
 
-def checkForOverwatch(who,getalium):
-    if who == "Alium": #if it's an alien shooting at soldier
-        for i in range(len(room[roomNo])):
-            alium = room[roomNo][i]
-            cthplayer = alium.aim - soldier.cover + 10
-            if alium.overwatch == 1:
-                p(0, str(alium) + ' reacts!')
-                s(1)
-                if ITEM_FOCUS_LENS in alium.items:
-                    cthplayer += 10
-                if rd.randrange(0,100) < cthplayer:
-                    dmg = alium.shoot()
-                    p(0,str(dmg)+" damage!")
-                    soldier.hp -= dmg
-                    checkPlayerDead()
-                    #did it kill the player?
-                else:
-                    p(0," Missed!")
-                alium.overwatch = 0
-    else: #if a soldier is shooting at an alien
-        alium = getalium
-        cth = soldier.aim - alium.cover + 10
-        if soldier.overwatch == 1:
-                p(0, str(soldier) + ' reacts!')
-                s(1)
-                dmg = soldier.shoot()
-                if 2 in soldier.items:
-                    cth += 10
-                if rd.randrange(0,100) < cth:
-                    p(0,str(dmg)+" damage!")
-                    alium.hp -= dmg
-                    checkDead(alium)
-                else:
-                    p(spk, self.soldier.get_overwatch_miss_retort())
-                soldier.overwatch = 0
+def check_for_alien_overwatch():
+    for i in range(len(room[roomNo])):
+        alium = room[roomNo][i]
+        alium.overwatch(soldier)
 
 
 def fire(alium,cthplayer):
     if alium.alive == True:
         if cthplayer > 0:
             p(0, str(alium) + ' fires at ' + str(soldier) + ' (' + str(cthplayer) + '%)'+'('+alium.weapon.name+")")
-            print(alium.weapon.get_sound())
-            s(.5)
-            dmg = alium.shoot()
-            s(.5)
-            if rd.randrange(0,100) < cthplayer:
-                p(0,str(dmg)+" damage!")
-                soldier.hp -= dmg
-                checkPlayerDead()
-
-                #did you kill the player, alien?
-            else:
-                p(0,"Missed!")
+            alium.shoot_at(soldier)
         else:
             if rd.randrange(0,100) < 80:
                 ow(alium)
@@ -1416,7 +1453,7 @@ def ow(alium):
     if alium.alive == True:
 
         p(0, str(alium) + ' went on overwatch!')
-        alium.overwatch = 1
+        alium.on_overwatch = True
 
 
 def move(alium,cover):
@@ -1427,12 +1464,12 @@ def move(alium,cover):
         elif cover == 20:
             p(0, str(alium) + ' runs to Half cover!')
         s(.5)
-        checkForOverwatch("Soldier",alium)
-        alium.overwatch = False
+        soldier.overwatch(alium)
+        alium.on_overwatch = False
         alium.cover = cover
 
 
-def alienTurn():
+def alienTurn(soldier):
     for i in range(len(room[roomNo])):
         try:
             alium = room[roomNo][i]
@@ -1441,7 +1478,7 @@ def alienTurn():
         #because something may have happened that causes an index error
         if alium.alive == True and soldier.alive == True:
             cthplayer = (alium.aim - soldier.cover) - soldier.hunkerbonus
-            if ITEM_FOCUS_LENS in alium.items:
+            if ITEM_SCOPE in alium.items:
                 cthplayer += 20
 
             if alium.cover < 20:
@@ -1480,43 +1517,6 @@ def alienTurn():
                 else:
                     ow(alium)
         s(.5)
-
-
-def checkDead(alium):
-    if alium.hp <= 0:
-        p(0, str(alium) + ' died!')
-        getLoot(alium)
-        drop()
-        checkXP()
-        alium.alive = False
-        room[roomNo].pop(room[roomNo].index(alium))
-        #kills, loots and removes the alien from the game
-
-
-def checkPlayerDead():
-    if soldier.hp <= 0:
-        p(0, str(soldier) + ' was killed!')
-        if not soldier.lastname == "Bradford":
-
-            p("Bradford","Commander, our unit was killed.")
-            p("Bradford","We were able to recover some materials, however.")
-            print("Fragments:",fragments)
-            print("Elerium:",elerium)
-            print("Meld:",meld)
-            print("Alloy:",alloy)
-            print('Total Score: ' + str(fragments + elerium + meld + alloy        \
-                                 + soldier.xp + roomNo))
-        else:
-            p("Council Member","Commander...you 'volunteered' your Central Officer to fight on the front lines.")
-            p("Council Member","This was a foolish endeavour, and as a result, you lost him.")
-            print('Monthly Rating: F')
-            p("Council Member","We have negotiated...a deal with the aliens, and so...your services are no longer required.")
-            p("Council Member","We are...terminating the XCOM Project, effective...immediately.")
-
-
-        soldier.alive = False
-        quit
-        #doesn't want to stop the whole game straight away for some reason
 
 
 #levels up
@@ -1620,7 +1620,7 @@ def getLoot(alium):
         elerium += 2
     elif ITEM_ALLOY_PLATING in alium.items:
         alloy += 2
-    elif ITEM_FOCUS_LENS in alium.items:
+    elif ITEM_SCOPE in alium.items:
         fragments += 2
     e, f = alium.weapon.get_materials()
     elerium += e
@@ -1791,7 +1791,7 @@ while soldier.alive == True:
             print("--------------Alien Activity!--------------")
             print()
             s(1)
-            alienTurn()
+            alienTurn(soldier)
             print()
             print("--------------XCOM Turn--------------")
             print()
