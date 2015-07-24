@@ -446,6 +446,11 @@ COVER_NONE = 0
 COVER_FULL = 40
 COVER_HALF = 20
 
+#######
+# Map #
+#######
+
+NUMBER_OF_ROOMS = 31
 
 ########################################################################
 # Legacy stuff to be removed                                           #
@@ -805,7 +810,6 @@ ALIEN_SPECIES = {
         8, (50, 60), (10, 12), PlasmaRifle, mutonfName, mutonlName
     ]
 }
-
 
 def create_alien(alien_id, room_index, species, **kwargs):
     '''
@@ -1677,6 +1681,51 @@ def mutate(i, aid):
         alien.refresh()
     room[i][aid] = alien
 
+
+def create_map(scripted_levels):
+    # the first room is empty, since the player starts there
+    options = ['Sectoid', 'Thinman', 'Floater', 'Muton']
+    the_map = [[]]
+    for i in range(1, NUMBER_OF_ROOMS):
+        if i in scripted_levels:
+            the_map.append(scripted_levels[i])
+        else:
+            pod = []
+            # more aliens per room the further along you are
+            for j in range(3 + rd.randrange(-2, 2 + round(i / 10))):
+                # determine alien species
+                species = options[0]
+                nrank = 0
+                if 3 < i and i < 10:
+                    species = rd.choice(options[:2])
+                elif 10 <= i and i < 20:
+                    species = rd.choice(options)
+                else:
+                    species = rd.choice(options[2:])
+                # determine rank
+                # if species == 'Sectoid':
+                maxrank = 4
+                if species == 'Thinman':
+                    maxrank = 5
+                elif species == 'Floater':
+                    maxrank = 6
+                elif species == 'Muton':
+                    maxrank = 8
+                nrank = rd.randrange(round(i / (NUMBER_OF_ROOMS               \
+                                                / (maxrank - 1))), maxrank)
+                alien = create_alien(j, i, species, nrank=nrank)
+                pod.append(alien)
+            the_map.append(pod)
+    return the_map
+
+
+def dump_map(the_map):
+    for index, location in enumerate(the_map):
+        print('#{}:'.format(index))
+        for pod in location:
+            print('{}'.format(pod))
+
+
 # def main():
 p("Bradford", "Welcome Commander. We've discovered an Alien Base, and it's your job to send someone out to deal with it.")
 p("Bradford", "Choose a soldier from the 3 below to go on the mission.")
@@ -1704,61 +1753,25 @@ elif soldier.lastname == VAN_DOORN:
 else:
     p(spk, "Ready for duty, Commander!")
 
-for i in range(30):
-    pod = []
-    for j in range(3+rd.randrange(-2,2+round(i/10))): #more aliens per room the further along you are
-        pod.append(create_alien(j, i, 'Sectoid'))
-    room.append(pod)
-    for j in range(len(room[i])):
-        if i < 10:
-            aid = room[i].index(rd.choice(room[i]))
-            mutate(i, aid)
-        elif i < 15:
-            for _ in range(2):
-                aid = room[i].index(rd.choice(room[i]))
-                mutate(i, aid)
-        elif i < 20:
-            for _ in range(3):
-                aid = room[i].index(rd.choice(room[i]))
-                mutate(i, aid)
-        else:
-            for _ in range(4):
-                aid = room[i].index(rd.choice(room[i]))
-                mutate(i, aid)
+scripted_levels = {
+    1:  [create_alien(1, 1, 'Sectoid', nrank=0)],
+    2:  [
+            create_alien(1, 2, 'Sectoid', nrank=0),
+            create_alien(1, 2, 'Sectoid', nrank=0)
+        ],
+    3:  [
+            create_alien(1, 3, 'Sectoid', nrank=0),
+            create_alien(1, 3, 'Sectoid', nrank=1)
+        ],
+    5:  ["Drop Zone"],
+    10: ["Drop Zone"],
+    15: ["Drop Zone"],
+    20: ["Drop Zone"],
+    30: [create_alien(1, 1, 'Muton', nrank=8, hp=50)]
+}
 
-############
-# scripted levels
-
-
-room[1] = []
-x = create_alien(1, 1, 'Sectoid', nrank=0)
-room[1].append(x)
-
-room[2] = []
-x = create_alien(1, 2, 'Sectoid', nrank=0)
-room[2].append(x)
-x = create_alien(2, 2, 'Sectoid', nrank=0)
-room[2].append(x)
-
-room[3] = []
-x = create_alien(1, 3, 'Sectoid', nrank=0)
-room[3].append(x)
-x = create_alien(2, 3, 'Sectoid', nrank=1)
-room[3].append(x)
-
-room[30] = []
-x = create_alien(1, 30, 'Muton', nrank=8, hp=50)
-x.refresh()
-room[30].append(x)
-
-#generates the pods in each room
-room.append([])
-room[31] = []
-room[5] = ["Drop Zone"]
-room[10] = ["Drop Zone"]
-room[15] = ["Drop Zone"]
-room[20] = ["Drop Zone"]
-
+room = create_map(scripted_levels)
+# dump_map(room)
 roomNo = 0
 
 #game loop, runs until your soldier is killed
@@ -1784,6 +1797,6 @@ while soldier.alive == True:
             print()
     except ( ValueError or IndexError ):
         pass
-    if roomNo == 31:
+    if roomNo == NUMBER_OF_ROOMS:
         print("You have won the game!")
         break
