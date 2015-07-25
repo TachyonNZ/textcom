@@ -1444,8 +1444,6 @@ def nade(alium):
         p(0, '3 damage!')
         soldier.cover = 20
         soldier.hp -= 3
-        checkPlayerDead()
-
 
 def ow(alium):
     if alium.alive == True:
