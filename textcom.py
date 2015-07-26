@@ -1046,13 +1046,13 @@ class AdvanceAction(Action):
                     ap -= 40
                     print("Beam Carbine fabricated!")
                 elif sel == "Frag":
-                    soldier.items.append(0)
+                    soldier.items.append(ITEM_FRAG_GRENADE)
                     alloy -= 4
                     fragments -= 20
                     ap -= 20
                     print("Frag Grenade fabricated!")
                 elif sel == "Meds":
-                    soldier.items.append(1)
+                    soldier.items.append(ITEM_MEDKIT)
                     meld -= 10
                     fragments -= 10
                     ap -= 20
