@@ -617,10 +617,11 @@ class Item:
     Items with an `use_ap_costs` of 0 are passive items.
     '''
 
-    def __init__(self, name, use_ap_costs, effect_descr):
+    def __init__(self, name, use_ap_costs, effect_descr, key = ""):
         self.name = name
         self.use_ap_costs = use_ap_costs
         self.effect_descr = effect_descr
+        self.action_key = key
 
     def use(self, soldier):
         '''Interface method for active items'''
@@ -628,8 +629,8 @@ class Item:
 
 
 class Explosive(Item):
-    def __init__(self, name, use_ap_costs, damage, sound_descr):
-        super().__init__(name, use_ap_costs, '{} dmg'.format(damage))
+    def __init__(self, name, use_ap_costs, damage, sound_descr, key):
+        super().__init__(name, use_ap_costs, '{} dmg'.format(damage), key)
         self.damage = damage
         self.sound_descr = sound_descr
 
@@ -660,7 +661,7 @@ class Explosive(Item):
 
 class Medkit(Item):
     def __init__(self):
-        super().__init__('Nano-Serum', 10, '+4 HP')
+        super().__init__('Nano-Serum', 10, '+4 HP', "s")
 
     def use(self, soldier):
         print("HP restored.")
@@ -668,13 +669,13 @@ class Medkit(Item):
 
 # XCOM items
 ITEM_SCOPE = Item('Scope', 0, 'Increase aim')
-ITEM_FRAG_GRENADE = Explosive('Frag Grenade', 10, 2, 'BAM!')
-ITEM_ALIEN_GRENADE = Explosive('Alien Grenade', 15, 4, '**BLAM**!')
+ITEM_FRAG_GRENADE = Explosive('Frag Grenade', 10, 2, 'BAM!', "g")
+ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increase defense')
 ITEM_MEDKIT = Medkit()
 
 # Alien items
 # Alien grenade is also available to XCOM
-ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increase defense')
+ITEM_ALIEN_GRENADE = Explosive('Alien Grenade', 15, 4, '**BLAM**!', "G")
 
 ########################################################################
 # unit classes                                                         #
@@ -701,8 +702,7 @@ class Unit:
         '''
         Generic overwatch handler which shoots at the target
         '''
-        chance = self.aim_at(target)
-        return self.shoot_at(target, chance,10)
+        return self.shoot_at(target, 10)
 
     def aim_at(self, target):
         hit_chance = self.aim - target.cover
@@ -717,6 +717,7 @@ class Unit:
             hit_chance = 5
         if hit_chance > 100:
             hit_chance = 95
+        
         return hit_chance
 
     def check_death(self):
@@ -751,7 +752,7 @@ class Unit:
     def reload(self):
         self.weapon.reload()
 
-    def shoot_at(self, target, chance, situation_modificator=0):
+    def shoot_at(self, target, situation_modificator=0):
         '''
         Perform an attack at the target
 
@@ -759,8 +760,11 @@ class Unit:
         target was hit, hit points are discounted and the death check is
         performed.
         '''
+        hit_chance = self.aim_at(target) + situation_modificator
         damage = self.weapon.shoot()
-        if rd.randrange(0, 100) < chance:
+        roll = rd.randrange(0, 100)
+        print("Shot roll: " + str(roll))
+        if roll < hit_chance:
             p(0, str(damage) + ' damage!')
             target.hp -= damage
             target.check_death()
@@ -956,11 +960,12 @@ def create_alien(alien_id, room_index, species, **kwargs):
 class Action:
     '''Base class for actions'''
 
-    def __init__(self, soldier, name, ap_costs, ends_turn):
+    def __init__(self, soldier, name, ap_costs, ends_turn, key = ""):
         self.soldier = soldier
         self.name = name
         self.ap_costs = ap_costs
         self.ends_turn = ends_turn
+        self.action_key = key
 
     def __str__(self):
         return self.name
@@ -982,7 +987,7 @@ class Action:
 
 class AdvanceAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Advance', 1, True)
+        super().__init__(soldier, 'Advance', 1, True, "a")
 
     def perform(self):
         global roomNo
@@ -1075,18 +1080,9 @@ class AdvanceAction(Action):
             scatter(roomNo)
 
 
-class ReloadAdvanceAction(Action):
-    def __init__(self, soldier):
-        super().__init__(soldier,'Reload + Advance',9,True)
-
-    def perform(self):
-        reload_action.perform()
-        advance_action.perform()
-
-
 class EndTurnAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'End turn', 0, True)
+        super().__init__(soldier, 'End turn', 0, True, "e")
 
     def perform(self):
         self._calc_ap()
@@ -1099,7 +1095,7 @@ class FireAction(Action):
         self.hit_chance = soldier.aim_at(target)
 
     def __str__(self):
-        return '(~{} dmg) Fire {} at {} - {} HP - ({}%)'.\
+        return '(~{} dmg)(6AP) Fire {} at {} - {} HP - ({}%)'.\
                format(soldier.weapon.damage, soldier.weapon.name, self.target,\
                       self.target.hp, self.hit_chance)
 
@@ -1111,17 +1107,16 @@ class FireAction(Action):
 
         self._calc_ap()
         p(spk, self.soldier.get_retort())
-        if self.soldier.shoot_at(self.target, self.hit_chance):
+        if self.soldier.shoot_at(self.target):
             fragments += getLoot(self.target)[0]
             elerium += getLoot(self.target)[1]
             meld += getLoot(self.target)[2]
             alloy += getLoot(self.target)[3]
-        print(self.hit_chance)
 
 
 class HunkerDownAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Hunker down', 1, True)
+        super().__init__(soldier, 'Hunker down', 1, True, "h")
 
     def perform(self):
         self._calc_ap()
@@ -1133,7 +1128,7 @@ class HunkerDownAction(Action):
 
 class OverwatchAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Overwatch', 6, True)
+        super().__init__(soldier, 'Overwatch', 6, True, "o")
 
     def perform(self):
         self._calc_ap()
@@ -1145,16 +1140,17 @@ class OverwatchAction(Action):
 
 class ReloadAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Reload', 8, False)
+        super().__init__(soldier, 'Reload', 8, False, "r")
 
     def perform(self):
         self._calc_ap()
         soldier.reload()
+        s(.5)
 
 
 class RepositionAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Reposition', 3, False)
+        super().__init__(soldier, 'Reposition', 3, False, "p")
 
     def perform(self):
         self._calc_ap()
@@ -1175,6 +1171,7 @@ class UseItemAction(Action):
     def __init__(self, soldier, item):
         super().__init__(soldier, 'Use ' + item.name, item.use_ap_costs, False)
         self.item = item
+        self.action_key = item.action_key
 
     def __str__(self):
         return '({}) ({} AP) {}'.format(self.item.effect_descr,                     \
@@ -1205,6 +1202,20 @@ alloy = 0
 ########################################################################
 # functions                                                            #
 ########################################################################
+
+def get_action_input(prompt, actions):
+    '''Get validated input, and return the chosen action'''
+
+    if prompt[-1] != ' ':
+        prompt += ' '
+
+    while True:
+        instr = input(prompt)
+        for action in actions:
+            if action.action_key == instr:
+                return action
+
+        print("'" + instr + "' is not a valid action")
 
 def get_int_input(prompt, vmin, vmax):
     '''Get a range checked integer from the player.'''
@@ -1307,15 +1318,17 @@ def prompt_player(actions):
         ap_costs = action.ap_costs
         if ap_costs > 0:
             ap_str = ' (' + str(ap_costs) + ' AP) '
-        print('[' + str(index + 1) + '] ' + ap_str + str(action))
-    return actions[get_int_input('> ', 1, len(actions)) - 1]
+        action_key = action.action_key
+        if len(action_key) < 1:
+            action_key = str(index + 1)
+            actions[index].action_key = action_key
+        print('[' + action_key + '] ' + ap_str + str(action))
+    return get_action_input('> ', actions)
+#    return actions[get_int_input('> ', 1, len(actions)) - 1]
 
-reload_action = ""
-advance_action = ""
+
 #ah, the player's turn.
 def playerTurn():
-    global reload_action
-    global advance_action
     soldier.ap = soldier.mobility
     soldier.on_overwatch = False
     soldier.hunkerbonus = 0
@@ -1327,14 +1340,13 @@ def playerTurn():
     overwatch_action = OverwatchAction(soldier)
     reload_action = ReloadAction(soldier)
     reposition_action = RepositionAction(soldier)
-    reload_advance_action = ReloadAdvanceAction(soldier)
 
     #maybe just have these as def's instead of classes?
 
     # while the player has spare action points left
     while soldier.ap > 0 and soldier.alive == True:
         # displays stats
-        p(0, 'HP: ' + str(soldier.hp) + '\tAP: ' + str(soldier.ap)+ '\tAmmo: ' + str(soldier.weapon.ammo))
+        p(0, 'HP: ' + str(soldier.hp) + '\tAP: ' + str(soldier.ap))
         if soldier.cover >= 40:
             p(0, str(soldier) + ' is in FULL cover.')
         elif soldier.cover <= 20:
@@ -1342,9 +1354,8 @@ def playerTurn():
         actions = []
         if len(room[roomNo]) == 0:
             actions.append(advance_action)
-            if soldier.ap >= reload_action.ap_costs and soldier.weapon.ammo < soldier.weapon.clip_size:
+            if soldier.ap >= reload_action.ap_costs:
                 actions.append(reload_action)
-                actions.append(reload_advance_action)
             actions.append(end_turn_action)
         else:
             if soldier.weapon.ammo > 0:
@@ -1378,7 +1389,6 @@ def displayShop(ap):
 
     options = []
     print("Time: "+str(ap))
-    p(0, 'HP: ' + str(soldier.hp) + '\tAP: ' + str(soldier.ap)+ '\tAmmo: ' + str(soldier.weapon.ammo))
     if ap == 60:
         if meld >= 15:
             if not "Aim" in soldier.mods:
@@ -1431,11 +1441,10 @@ def check_for_alien_overwatch():
 
 
 def fire(alium,cthplayer):
-    alium.on_overwatch == False
     if alium.alive == True:
         if cthplayer > 0:
             p(0, str(alium) + ' fires at ' + str(soldier) + ' (' + str(cthplayer) + '%)'+'('+alium.weapon.name+")")
-            alium.shoot_at(soldier, cthplayer)
+            alium.shoot_at(soldier, -soldier.hunkerbonus)
         else:
             if rd.randrange(0,100) < 80:
                 ow(alium)
@@ -1445,7 +1454,6 @@ def fire(alium,cthplayer):
 
 
 def nade(alium):
-    alium.on_overwatch == False
     if ITEM_ALIEN_GRENADE not in alium.items:
         raise Exception('No grenade in inventory')
     if alium.alive == True:
