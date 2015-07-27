@@ -432,7 +432,7 @@ ALIEN_RANKS = [
 retort = ("Suck on this!","Eat this!","Pick on someone your own size!","Take this!","Welcome to Earth!","AAGGHH!!!","HYAAA!")
 
 #human weapons + items
-drops = {0:"Frag Grenade",1:"Nano Serum",2:"Alien Grenade",3:"Light Plasma Rifle",4:"Plasma Rifle"}
+drops = {0:"Frag Grenade",1:"Nano-Serum",2:"Alien Grenade",3:"Light Plasma Rifle",4:"Plasma Rifle"}
 
 #aliem weapons, items and powers
 apowers = {0: "Mindfray",1: "Psi Boost"}
@@ -660,7 +660,7 @@ class Explosive(Item):
 
 class Medkit(Item):
     def __init__(self):
-        super().__init__('Medkit', 10, '+4 HP')
+        super().__init__('Nano-Serum', 10, '+4 HP')
 
     def use(self, soldier):
         print("HP restored.")
@@ -811,7 +811,6 @@ class Soldier(Unit):
               "We have negotiated...a deal with the aliens, and so...your services are no longer required.")
             p("Council Member",
               "We are...terminating the XCOM Project, effective...immediately.")
-        #doesn't want to stop the whole game straight away for some reason
         quit
 
     def _handle_overwatch(self, target):
@@ -1160,7 +1159,7 @@ class RepositionAction(Action):
             alien = rd.choice(room[roomNo])
 
             p(0, str(alien) + ' is flanked!')
-            alien.cover = COVER_FLANKED # TODO: flanked should be worse than no cover
+            alien.cover = COVER_FLANKED
 
 
 class UseItemAction(Action):
@@ -1365,8 +1364,6 @@ def displayShop(ap):
 
     options = []
     print("Time: "+str(ap))
-    options.append("Advance")
-    p(len(options),"Advance")
     if ap == 60:
         if meld >= 15:
             if not "Aim" in soldier.mods:
@@ -1738,7 +1735,6 @@ while soldier.alive == True:
     try:
         old_room = roomNo
         playerTurn()
-        soldier.items.append(ITEM_ALIEN_GRENADE)
         p(0, str(soldier) + ' is out of AP!')
 
         # Aliens are not allowed to act after the room was changed,
