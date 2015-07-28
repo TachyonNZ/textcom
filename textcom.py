@@ -800,6 +800,7 @@ class Unit:
             print(self.weapon.get_sound())
             s(0.5)
             p(0, ' Missed!')
+        self.on_overwatch = False
         return False
     
     def getCrit(self, target):
@@ -1030,86 +1031,89 @@ class AdvanceAction(Action):
 
         self._calc_ap()
         roomNo += 1
-        if not "Drop Zone" in room[roomNo]:
-            checkspot(roomNo)
-            scatter(roomNo)
-        else:
-            p(spk,"Reached an access point, Commander. Requesting additional goods!")
-            p(spk,"We only have a short time before the aliens close it off!")
-            ap = 60
-            while ap != 0:
-                print("Fragments:",fragments)
-                print("Elerium:",elerium)
-                print("Meld:",meld)
-                print("Alloy:",alloy)
-                sel = displayShop(ap)
+        try:
+            if not "Drop Zone" in room[roomNo]:
+                checkspot(roomNo)
+                scatter(roomNo)
+            else:
+                p(spk,"Reached an access point, Commander. Requesting additional goods!")
+                p(spk,"We only have a short time before the aliens close it off!")
+                ap = 60
+                while ap != 0:
+                    print("Fragments:",fragments)
+                    print("Elerium:",elerium)
+                    print("Meld:",meld)
+                    print("Alloy:",alloy)
+                    sel = displayShop(ap)
 
-                if sel == "AimBonus":
-                    soldier.mods.append("Aim")
-                    soldier.aim += 5
-                    meld -= 15
-                    ap -= 60
-                    print("Depth Perception Insta-Genemod applied!")
-                elif sel == "HPBonus":
-                    soldier.mods.append("HP")
-                    soldier.hp += 5
-                    meld -= 20
-                    ap -= 60
-                    print("Muscle Regeneration Insta-Genemod applied!")
-                elif sel == "APBonus":
-                    soldier.mods.append("HP")
-                    soldier.mobility += 2
-                    meld -=15
-                    ap -= 60
-                    print("Micro Servomotors Augment inserted!")
-                elif sel == "NadeBonus":
-                    soldier.mods.append("Nade")
-                    soldier.item.append(0)
-                    soldier.item.append(0)
-                    meld -= 20
-                    ap -= 60
-                    print("Grenade Launcher Augment inserted!")
-                elif sel == "LaserRifle":
-                    soldier.weapon = LaserRifle()
-                    fragments -= 40
-                    elerium -= 20
-                    ap -= 40
-                    print("Beam Rifle fabricated!")
-                elif sel == "LaserCarbine":
-                    soldier.weapon = LaserCarbine()
-                    fragments -= 20
-                    elerium -= 10
-                    ap -= 40
-                    print("Beam Carbine fabricated!")
-                elif sel == "Frag":
-                    soldier.items.append(ITEM_FRAG_GRENADE)
-                    alloy -= 4
-                    fragments -= 20
-                    ap -= 20
-                    print("Frag Grenade fabricated!")
-                elif sel == "Meds":
-                    soldier.items.append(ITEM_MEDKIT)
-                    meld -= 10
-                    fragments -= 10
-                    ap -= 20
-                    print("Nano Serum fabricated!")
-                elif sel == "Reload":
-                    soldier.weapon.ammo = soldier.weapon.clip_size
-                    ap -= 20
-                    print("Weapon reloaded!")
-                elif sel == "Heal":
-                    soldier.hp += 1
-                    ap -= 20
-                    print("Healed 1HP!")
-                elif sel == "Advance":
-                    ap = 0
+                    if sel == "AimBonus":
+                        soldier.mods.append("Aim")
+                        soldier.aim += 5
+                        meld -= 15
+                        ap -= 60
+                        print("Depth Perception Insta-Genemod applied!")
+                    elif sel == "HPBonus":
+                        soldier.mods.append("HP")
+                        soldier.hp += 5
+                        meld -= 20
+                        ap -= 60
+                        print("Muscle Regeneration Insta-Genemod applied!")
+                    elif sel == "APBonus":
+                        soldier.mods.append("HP")
+                        soldier.mobility += 2
+                        meld -=15
+                        ap -= 60
+                        print("Micro Servomotors Augment inserted!")
+                    elif sel == "NadeBonus":
+                        soldier.mods.append("Nade")
+                        soldier.item.append(0)
+                        soldier.item.append(0)
+                        meld -= 20
+                        ap -= 60
+                        print("Grenade Launcher Augment inserted!")
+                    elif sel == "LaserRifle":
+                        soldier.weapon = LaserRifle()
+                        fragments -= 40
+                        elerium -= 20
+                        ap -= 40
+                        print("Beam Rifle fabricated!")
+                    elif sel == "LaserCarbine":
+                        soldier.weapon = LaserCarbine()
+                        fragments -= 20
+                        elerium -= 10
+                        ap -= 40
+                        print("Beam Carbine fabricated!")
+                    elif sel == "Frag":
+                        soldier.items.append(ITEM_FRAG_GRENADE)
+                        alloy -= 4
+                        fragments -= 20
+                        ap -= 20
+                        print("Frag Grenade fabricated!")
+                    elif sel == "Meds":
+                        soldier.items.append(ITEM_MEDKIT)
+                        meld -= 10
+                        fragments -= 10
+                        ap -= 20
+                        print("Nano Serum fabricated!")
+                    elif sel == "Reload":
+                        soldier.weapon.ammo = soldier.weapon.clip_size
+                        ap -= 20
+                        print("Weapon reloaded!")
+                    elif sel == "Heal":
+                        soldier.hp += 1
+                        ap -= 20
+                        print("Healed 1HP!")
+                    elif sel == "Advance":
+                        ap = 0
+                    s(.5)
                 s(.5)
-            s(.5)
-            p(spk,"All out of time! I'll have to keep moving!")
-            s(.5)
-            roomNo += 1
-            checkspot(roomNo)
-            scatter(roomNo)
+                p(spk,"All out of time! I'll have to keep moving!")
+                s(.5)
+                roomNo += 1
+                checkspot(roomNo)
+                scatter(roomNo)
+        except( Exception ):
+            pass
 
 
 class ReloadAdvanceAction(Action):
@@ -1375,6 +1379,7 @@ def playerTurn():
     soldier.ap = soldier.mobility
     soldier.on_overwatch = False
     soldier.hunkerbonus = 0
+    
 
     # currently redundant and inefficient
     advance_action = AdvanceAction(soldier)
@@ -1488,7 +1493,7 @@ def check_for_alien_overwatch():
 
 
 def fire(alium,cthplayer):
-    alium.on_overwatch == False
+    alium.on_overwatch = False
     if alium.alive == True:
         if cthplayer > 0:
             p(0, str(alium) + ' fires at ' + str(soldier) + ' (' + str(cthplayer) + '%)'+'('+alium.weapon.name+")")
@@ -1502,7 +1507,7 @@ def fire(alium,cthplayer):
 
 
 def nade(alium):
-    alium.on_overwatch == False
+    alium.on_overwatch = False
     if ITEM_ALIEN_GRENADE not in alium.items:
         raise Exception('No grenade in inventory')
     if alium.alive == True:
@@ -1697,13 +1702,13 @@ def getLoot(alium):
 
 def drop():
     itemdrop = rd.randrange(0,5)
-    if rd.randrange(1,100) <= 10+(soldier.mobility):
+    if rd.randrange(1,100) <= 5+(soldier.mobility):
         p(spk,"Recovered a "+drops[itemdrop]+"!")
         if itemdrop == 0:
             soldier.items.append(ITEM_FRAG_GRENADE)
         elif itemdrop == 1:
             soldier.items.append(ITEM_MEDKIT)
-        elif itemdrop == 5:
+        elif itemdrop == 2:
             soldier.items.append(ITEM_ALIEN_GRENADE)
         elif itemdrop == 3:
             print("Replace your {}?".format(soldier.weapon.name))
@@ -1819,12 +1824,13 @@ scripted_levels = {
     10: ["Drop Zone"],
     15: ["Drop Zone"],
     20: ["Drop Zone"],
-    30: [create_alien(1, 1, 'Muton', nrank=8, hp=50)]
+    30: [create_alien(1, 1, 'Muton', nrank=8, hp=80)]
 }
 
 room = create_map(scripted_levels)
 # dump_map(room)
 roomNo = 0
+
 
 #game loop, runs until your soldier is killed
 while soldier.alive == True:
@@ -1850,5 +1856,5 @@ while soldier.alive == True:
     except ( ValueError or IndexError ):
         pass
     if roomNo == NUMBER_OF_ROOMS:
-        print("You have won the game!")
+        print("Bradford","We did it, Commander! We cleared the Alien Base. We took out their leader - that's a victory in my books!")
         break
