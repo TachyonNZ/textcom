@@ -481,11 +481,12 @@ def s(t):
 class Weapon:
     '''Base class for all weapon classes'''
 
-    def __init__(self, name, damage, clip_size):
+    def __init__(self, name, damage, clip_size,crit_chance):
         self.name = name
         self.damage = damage
         self.clip_size = clip_size
         self.ammo = clip_size
+        self.crit_chance = crit_chance
 
     def get_sound(self):
         '''Sound interface method'''
@@ -505,12 +506,11 @@ class Weapon:
         self.ammo -= 1
         return self.damage + rd.randrange(-1, 2)
 
-
 class AlienWeapon(Weapon):
     '''Base class for alien weapons'''
 
-    def __init__(self, name, damage, clip_size, elerium, fragments):
-        super().__init__(name, damage, clip_size)
+    def __init__(self, name, damage, clip_size, elerium, fragments,crit_chance):
+        super().__init__(name, damage, clip_size,crit_chance)
         self.elerium = elerium
         self.fragments = fragments
 
@@ -522,7 +522,7 @@ class AlienWeapon(Weapon):
 
 class BallisticPistol(Weapon):
     def __init__(self):
-        super().__init__('Ballistic Pistol', 2, 10)
+        super().__init__('Ballistic Pistol', 2, 10,5)
 
     def get_sound(self):
         return '*Dak*'
@@ -530,7 +530,7 @@ class BallisticPistol(Weapon):
 
 class Autopistol(Weapon):
     def __init__(self):
-        super().__init__('Autopistol', 2, 10)
+        super().__init__('Autopistol', 2, 10,5)
 
     def get_sound(self):
         return '*Dakdakdak*'
@@ -538,7 +538,7 @@ class Autopistol(Weapon):
 
 class PlasmaPistol(AlienWeapon):
     def __init__(self):
-        super().__init__('Plasma Pistol', 2, 10,1,1)
+        super().__init__('Plasma Pistol', 2, 10,1,1,5)
 
     def get_sound(self):
         return '*Whap*'
@@ -546,7 +546,7 @@ class PlasmaPistol(AlienWeapon):
 
 class AlloyPistol(Weapon):
     def __init__(self):
-        super().__init__('Alloy Pistol', 4, 10)
+        super().__init__('Alloy Pistol', 4, 10,5)
 
     def get_sound(self):
         return '*Kchak!*'
@@ -554,31 +554,31 @@ class AlloyPistol(Weapon):
 
 class BallisticCarbine(Weapon):
     def __init__(self):
-        super().__init__('Ballistic Carbine', 2, 3)
+        super().__init__('Ballistic Carbine', 2, 3,15)
 
     def get_sound(self):
-        return '*Dakkadakkadakka*'
+        return '*Dakkadakka!*'
 
 
 class BallisticRifle(Weapon):
     def __init__(self):
-        super().__init__('Ballistic Rifle', 3, 4)
+        super().__init__('Ballistic Rifle', 3, 4,10)
 
     def get_sound(self):
-        return '*Dakkadakkadakka*'
+        return '*Dakkadakkadakka!*'
 
 
 class LaserCarbine(Weapon):
     def __init__(self):
-        super().__init__('Beam Carbine', 3, 999)
+        super().__init__('Beam Carbine', 3, 999,20)
 
     def get_sound(self):
-        return '*Zzzaaaaaap!*'
+        return '*Zzzaap!*'
 
 
 class LaserRifle(Weapon):
     def __init__(self):
-        super().__init__('Beam Rifle', 4, 999)
+        super().__init__('Beam Rifle', 4, 999,15)
 
     def get_sound(self):
         return '*Zzzaaaaaap!*'
@@ -586,26 +586,26 @@ class LaserRifle(Weapon):
 
 class PlasmaCarbine(AlienWeapon):
     def __init__(self):
-        super().__init__('Light Plasma Rifle', 4, 4, 1, 2)
+        super().__init__('Light Plasma Rifle', 4, 4, 1, 2, 15)
 
     def get_sound(self):
-        return '*Whap-whap-whap*'
+        return '*Whap-whap-whap!*'
 
 
 class PlasmaRifle(AlienWeapon):
     def __init__(self):
-        super().__init__('Plasma Rifle', 6, 5, 2, 4)
+        super().__init__('Plasma Rifle', 6, 5, 2, 4, 10)
 
     def get_sound(self):
-        return '*Whap-whap-whap*'
+        return '*Whop-whop-whop!*'
 
 
 class BradfordsPistol(Weapon):
     def __init__(self):
-        super().__init__("Bradford's Pistol", 5, 999)
+        super().__init__("Bradford's Pistol", 5, 999, 30)
 
     def get_sound(self):
-        return '*Dak*'
+        return '*Bang!*'
 
 ########################################################################
 # item classes                                                         #
@@ -760,15 +760,27 @@ class Unit:
         target was hit, hit points are discounted and the death check is
         performed.
         '''
-        damage = self.weapon.shoot()
+        crit = self.getCrit(target)
+        
         if rd.randrange(0, 100) < chance:
-            p(0, str(damage) + ' damage!')
-            target.hp -= damage
-            target.check_death()
+            if rd.randrange(0, 100) < crit:
+                p(0, "CRITICAL!")
+                damage = self.weapon.shoot()+rd.randint(3,5)
+                p(0, str(damage) + ' damage!')
+                target.hp -= damage
+                target.check_death()
+            else:
+                damage = self.weapon.shoot()
+                p(0, str(damage) + ' damage!')
+                target.hp -= damage
+                target.check_death()
             return True
         else:
             p(0, ' Missed!')
         return False
+    
+    def getCrit(self, target):
+        return self.weapon.crit_chance - target.cover/4
 
 
 class Soldier(Unit):
@@ -1365,6 +1377,7 @@ def playerTurn():
             actions.append(advance_action)
             if soldier.ap >= reload_action.ap_costs and soldier.weapon.ammo < soldier.weapon.clip_size:
                 actions.append(reload_action)
+            if soldier.ap >= reload_advance_action.ap_costs and soldier.weapon.ammo < soldier.weapon.clip_size:
                 actions.append(reload_advance_action)
             actions.append(end_turn_action)
         else:
