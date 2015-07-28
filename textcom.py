@@ -617,10 +617,11 @@ class Item:
     Items with an `use_ap_costs` of 0 are passive items.
     '''
 
-    def __init__(self, name, use_ap_costs, effect_descr):
+    def __init__(self, name, use_ap_costs, effect_descr, key = ""):
         self.name = name
         self.use_ap_costs = use_ap_costs
         self.effect_descr = effect_descr
+        self.action_key = key
 
     def use(self, soldier):
         '''Interface method for active items'''
@@ -628,8 +629,8 @@ class Item:
 
 
 class Explosive(Item):
-    def __init__(self, name, use_ap_costs, damage, sound_descr):
-        super().__init__(name, use_ap_costs, '{} dmg'.format(damage))
+    def __init__(self, name, use_ap_costs, damage, sound_descr, key):
+        super().__init__(name, use_ap_costs, '{} dmg'.format(damage), key)
         self.damage = damage
         self.sound_descr = sound_descr
 
@@ -660,7 +661,7 @@ class Explosive(Item):
 
 class Medkit(Item):
     def __init__(self):
-        super().__init__('Nano-Serum', 10, '+4 HP')
+        super().__init__('Nano-Serum', 10, '+4 HP', 's')
 
     def use(self, soldier):
         print("HP restored.")
@@ -668,13 +669,13 @@ class Medkit(Item):
 
 # XCOM items
 ITEM_SCOPE = Item('Scope', 0, 'Increase aim')
-ITEM_FRAG_GRENADE = Explosive('Frag Grenade', 10, 2, 'BAM!')
-ITEM_ALIEN_GRENADE = Explosive('Alien Grenade', 15, 4, '**BLAM**!')
+ITEM_FRAG_GRENADE = Explosive('Frag Grenade', 10, 2, 'BAM!', 'g')
+ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increase defense')
 ITEM_MEDKIT = Medkit()
 
 # Alien items
 # Alien grenade is also available to XCOM
-ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increase defense')
+ITEM_ALIEN_GRENADE = Explosive('Alien Grenade', 15, 4, '**BLAM**!', 'G')
 
 ########################################################################
 # unit classes                                                         #
@@ -956,12 +957,13 @@ def create_alien(alien_id, room_index, species, **kwargs):
 class Action:
     '''Base class for actions'''
 
-    def __init__(self, soldier, name, ap_costs, ends_turn):
+    def __init__(self, soldier, name, ap_costs, ends_turn, key = ''):
         self.soldier = soldier
         self.name = name
         self.ap_costs = ap_costs
         self.ends_turn = ends_turn
-
+        self.action_key = key
+    
     def __str__(self):
         return self.name
 
@@ -982,7 +984,7 @@ class Action:
 
 class AdvanceAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Advance', 1, True)
+        super().__init__(soldier, 'Advance', 1, True, 'a')
 
     def perform(self):
         global roomNo
@@ -1077,7 +1079,7 @@ class AdvanceAction(Action):
 
 class ReloadAdvanceAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier,'Reload + Advance',9,True)
+        super().__init__(soldier,'Reload + Advance', 9, True, 'd')
 
     def perform(self):
         reload_action.perform()
@@ -1086,7 +1088,7 @@ class ReloadAdvanceAction(Action):
 
 class EndTurnAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'End turn', 0, True)
+        super().__init__(soldier, 'End turn', 0, True, 'e')
 
     def perform(self):
         self._calc_ap()
@@ -1116,12 +1118,11 @@ class FireAction(Action):
             elerium += getLoot(self.target)[1]
             meld += getLoot(self.target)[2]
             alloy += getLoot(self.target)[3]
-        print(self.hit_chance)
 
 
 class HunkerDownAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Hunker down', 1, True)
+        super().__init__(soldier, 'Hunker down', 1, True, 'h')
 
     def perform(self):
         self._calc_ap()
@@ -1133,7 +1134,7 @@ class HunkerDownAction(Action):
 
 class OverwatchAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Overwatch', 6, True)
+        super().__init__(soldier, 'Overwatch', 6, True, 'o')
 
     def perform(self):
         self._calc_ap()
@@ -1145,7 +1146,7 @@ class OverwatchAction(Action):
 
 class ReloadAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Reload', 8, False)
+        super().__init__(soldier, 'Reload', 8, False, 'r')
 
     def perform(self):
         self._calc_ap()
@@ -1154,7 +1155,7 @@ class ReloadAction(Action):
 
 class RepositionAction(Action):
     def __init__(self, soldier):
-        super().__init__(soldier, 'Reposition', 3, False)
+        super().__init__(soldier, 'Reposition', 3, False, 'p')
 
     def perform(self):
         self._calc_ap()
@@ -1175,6 +1176,7 @@ class UseItemAction(Action):
     def __init__(self, soldier, item):
         super().__init__(soldier, 'Use ' + item.name, item.use_ap_costs, False)
         self.item = item
+        self.action_key = item.action_key
 
     def __str__(self):
         return '({}) ({} AP) {}'.format(self.item.effect_descr,                     \
@@ -1206,6 +1208,21 @@ alloy = 0
 # functions                                                            #
 ########################################################################
 
+def get_action_input(prompt, actions):
+    '''Get validated input, and return the chosen action'''
+    
+    if prompt[-1] != ' ':
+        prompt += ' '
+    
+    while True:
+        instr = input(prompt)
+        for action in actions:
+            if action.action_key == instr:
+                return action
+        
+        print("'" + instr + "' is not a valid action")
+
+# Legacy, can probably be removed
 def get_int_input(prompt, vmin, vmax):
     '''Get a range checked integer from the player.'''
 
@@ -1307,8 +1324,12 @@ def prompt_player(actions):
         ap_costs = action.ap_costs
         if ap_costs > 0:
             ap_str = ' (' + str(ap_costs) + ' AP) '
-        print('[' + str(index + 1) + '] ' + ap_str + str(action))
-    return actions[get_int_input('> ', 1, len(actions)) - 1]
+        action_key = action.action_key
+        if len(action_key) < 1:
+            action_key = str(index + 1)
+            actions[index].action_key = action_key
+        print('[' + action_key + '] ' + ap_str + str(action))
+    return get_action_input('> ', actions)
 
 reload_action = ""
 advance_action = ""
