@@ -776,6 +776,10 @@ class Unit:
                 target.check_death()
             return True
         else:
+            self.weapon.ammo -= 1
+            s(0.5)
+            print(self.weapon.get_sound())
+            s(0.5)
             p(0, ' Missed!')
         return False
     
@@ -1674,7 +1678,7 @@ def getLoot(alium):
 
 def drop():
     itemdrop = rd.randrange(0,5)
-    if rd.randrange(1,100) <= 5:
+    if rd.randrange(1,100) <= 10+(soldier.mobility):
         p(spk,"Recovered a "+drops[itemdrop]+"!")
         if itemdrop == 0:
             soldier.items.append(ITEM_FRAG_GRENADE)
@@ -1683,9 +1687,31 @@ def drop():
         elif itemdrop == 5:
             soldier.items.append(ITEM_ALIEN_GRENADE)
         elif itemdrop == 3:
-            soldier.weapon = PlasmaCarbine()
+            print("Replace your {}?".format(soldier.weapon.name))
+            replace = yn()
+            if replace:
+                soldier.weapon = PlasmaCarbine()
         elif itemdrop == 4:
-            soldier.weapon = PlasmaRifle()
+            print("Replace your {}?".format(soldier.weapon.name))
+            replace = yn()
+            if replace:
+                soldier.weapon = PlasmaRifle()
+
+def yn():
+    chosen = False
+    while chosen == False:
+        print("[y] Yes")
+        print("[n] No")
+        selection = input(">> ")
+        if selection == "y":
+            chosen = True
+            return True
+        if selection == "n":
+            chosen = True
+            return False
+        else:
+            continue
+            
 
 
 
