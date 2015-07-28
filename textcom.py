@@ -1054,7 +1054,7 @@ class AdvanceAction(Action):
                         print("Depth Perception Insta-Genemod applied!")
                     elif sel == "HPBonus":
                         soldier.mods.append("HP")
-                        soldier.hp += 5
+                        soldier.hp += 10
                         meld -= 20
                         ap -= 60
                         print("Muscle Regeneration Insta-Genemod applied!")
@@ -1087,13 +1087,13 @@ class AdvanceAction(Action):
                         soldier.items.append(ITEM_FRAG_GRENADE)
                         alloy -= 4
                         fragments -= 20
-                        ap -= 20
+                        ap -= 30
                         print("Frag Grenade fabricated!")
                     elif sel == "Meds":
                         soldier.items.append(ITEM_MEDKIT)
-                        meld -= 10
-                        fragments -= 10
-                        ap -= 20
+                        meld -= 5
+                        fragments -= 5
+                        ap -= 30
                         print("Nano Serum fabricated!")
                     elif sel == "Reload":
                         soldier.weapon.ammo = soldier.weapon.clip_size
@@ -1453,7 +1453,7 @@ def displayShop(ap):
         if meld >= 20:
             if not "HP" in soldier.mods:
                 options.append("HPBonus")
-                p(len(options),"(60 Time) (20m) Insta-Genemod: Muscle Regeneration (+5 HP)")
+                p(len(options),"(60 Time) (20m) Insta-Genemod: Muscle Regeneration (+10 HP)")
             if not "Nade" in soldier.mods:
                 options.append("NadeBonus")
                 p(len(options),"(60 Time) (20m) Micro-Augment: Grenade Launcher (+2 Frag Grenades)")
@@ -1467,9 +1467,9 @@ def displayShop(ap):
             p(len(options),"(40 Time) (10e) (30f) Get Laser Carbine")
             print("     (~3dmg), infinite ammo, +10% aim")
     if ap >= 30:
-        if meld >= 10 and fragments >= 10:
+        if meld >= 5 and fragments >= 5:
             options.append("Meds")
-            p(len(options),"(30 Time) (10m) (10f) Get Nano Serum")
+            p(len(options),"(30 Time) (10m) (5f) Get Nano Serum")
         if alloy >= 4 and fragments >= 20:
             options.append("Frag")
             p(len(options),"(30 Time) (20f) (4a) Get Frag Grenade")
@@ -1551,24 +1551,24 @@ def alienTurn(soldier):
         if alium.alive == True and soldier.alive == True:
             cthplayer = (alium.aim - soldier.cover) - soldier.hunkerbonus
             if ITEM_SCOPE in alium.items:
-                cthplayer += 20
+                cthplayer += 10
 
             if alium.cover < 20:
-                if rd.randrange(0,100) < 80:
+                if rd.randrange(0,100) < 70:
                     move(alium,40)
-                elif rd.randrange(0,100) < 40:
+                elif rd.randrange(0,100) < 20:
                     fire(alium,cthplayer)
                 else:
                     move(alium,20)
             elif alium.cover < 40:
-                if cthplayer > 50 + rd.randrange(0,20):
+                if cthplayer > 30 + rd.randrange(0,20):
                     fire(alium,cthplayer)
-                elif rd.randrange(0,100) < 20:
+                elif rd.randrange(0,100) < 15:
                     if ITEM_ALIEN_GRENADE in alium.items:
                         nade(alium)
                     else:
                         fire(alium,cthplayer)
-                elif rd.randrange(0,100) < 20:
+                elif rd.randrange(0,100) < 30:
                     if rd.randrange(0,100) < 50:
                         move(alium,40)
                     else:
@@ -1576,7 +1576,7 @@ def alienTurn(soldier):
                     #randomly moves to different cover sometimes
 
                 else:
-                    if rd.randrange(0,100) < 20:
+                    if rd.randrange(0,100) < 70:
                         ow(alium)
                     else:
                         fire(alium,cthplayer)
@@ -1596,7 +1596,7 @@ def checkXP():
     was_promoted = False
     if soldier.xp >= 25 and soldier.nrank < RANK_SQUADDIE:
         soldier.nrank = RANK_SQUADDIE
-        soldier.hp += 1
+        soldier.hp += 2
         soldier.aim += 2
         soldier.mobility += 1
         drop()
@@ -1604,7 +1604,7 @@ def checkXP():
         was_promoted = True
     elif soldier.xp >= 100 and soldier.nrank < RANK_CORPORAL:
         soldier.nrank = RANK_CORPORAL
-        soldier.hp += 1
+        soldier.hp += 2
         soldier.aim += 2
         soldier.mobility += 1
         drop()
@@ -1640,7 +1640,7 @@ def checkXP():
         was_promoted = True
     elif soldier.xp >= 900 and soldier.nrank < RANK_LIEUTENANT:
         soldier.nrank = RANK_LIEUTENANT
-        soldier.hp += 1
+        soldier.hp += 2
         soldier.aim += 1
         drop()
         drop()
@@ -1656,7 +1656,7 @@ def checkXP():
         was_promoted = True
     elif soldier.xp >= 2000 and soldier.nrank < RANK_MAJOR:
         soldier.nrank = RANK_MAJOR
-        soldier.hp += 1
+        soldier.hp += 2
         soldier.aim += 1
         soldier.mobility += 1
         drop()
@@ -1665,7 +1665,7 @@ def checkXP():
         was_promoted = True
     elif soldier.xp >= 3000 and soldier.nrank < RANK_COLONEL:
         soldier.nrank = RANK_COLONEL
-        soldier.hp += 1
+        soldier.hp += 2
         soldier.aim += 1
         drop()
         drop()
@@ -1824,7 +1824,7 @@ scripted_levels = {
     10: ["Drop Zone"],
     15: ["Drop Zone"],
     20: ["Drop Zone"],
-    30: [create_alien(1, 1, 'Muton', nrank=8, hp=80)]
+    30: [create_alien(1, 1, 'Muton', nrank=8, hp=50)]
 }
 
 room = create_map(scripted_levels)
