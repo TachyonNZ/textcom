@@ -45,7 +45,15 @@ XCOM_MALE_FIRSTNAME = [
     'Paul',
     'Guy',
     'Sid',
-    'Murray'
+    'Murray',
+    'James',
+    'Ethan',
+    'Micah',
+    'Michael',
+    'Mike',
+    'Jason',
+    'Sam',
+    'Reuben'
 ]
 XCOM_FEMALE_FIRSTNAME = [
     'Becks',
@@ -77,7 +85,8 @@ XCOM_FEMALE_FIRSTNAME = [
     'Ingrid',
     'Nicole',
     'Chelsea',
-    'Chell'
+    'Chell',
+    'Lexi'
 ]
 XCOM_LASTNAME = [
     'Meier',
@@ -105,6 +114,16 @@ XCOM_LASTNAME = [
     'Clark',
     'Hayes',
     'Munroe',
+    'Scott',
+    'Mars',
+    'Smith',
+    'Connors',
+    'Hunt',
+    'Bond',
+    'Miller',
+    'Zhu',
+    'Zhang',
+    'Li'
 
 ]
 # <http://www.ufopaedia.org/index.php?title=Nicknames_%28EU2012%29>
@@ -573,7 +592,7 @@ class LaserCarbine(Weapon):
         super().__init__('Beam Carbine', 3, 999,20)
 
     def get_sound(self):
-        return '*Zzzaap!*'
+        return '*Zzaap!*'
 
 
 class LaserRifle(Weapon):
@@ -589,7 +608,7 @@ class PlasmaCarbine(AlienWeapon):
         super().__init__('Light Plasma Rifle', 4, 4, 1, 2, 15)
 
     def get_sound(self):
-        return '*Whap-whap-whap!*'
+        return '*W-W-Whap!*'
 
 
 class PlasmaRifle(AlienWeapon):
@@ -597,7 +616,7 @@ class PlasmaRifle(AlienWeapon):
         super().__init__('Plasma Rifle', 6, 5, 2, 4, 10)
 
     def get_sound(self):
-        return '*Whop-whop-whop!*'
+        return '*Whap-whap-whap!*'
 
 
 class BradfordsPistol(Weapon):
@@ -668,9 +687,9 @@ class Medkit(Item):
         soldier.hp += 4
 
 # XCOM items
-ITEM_SCOPE = Item('Scope', 0, 'Increase aim')
+ITEM_SCOPE = Item('Scope', 0, 'Increases aim')
 ITEM_FRAG_GRENADE = Explosive('Frag Grenade', 10, 2, 'BAM!', 'g')
-ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increase defense')
+ITEM_ALLOY_PLATING = Item('Alloy Plating', 0, 'Increases defense')
 ITEM_MEDKIT = Medkit()
 
 # Alien items
