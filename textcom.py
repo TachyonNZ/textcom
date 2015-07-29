@@ -696,6 +696,14 @@ ITEM_MEDKIT = Medkit()
 # Alien grenade is also available to XCOM
 ITEM_ALIEN_GRENADE = Explosive('Alien Grenade', 15, 4, '**BLAM**!', 'G')
 
+
+
+#############################perks
+
+class Perk():
+    def __init__(self,name,desc):
+        pass
+
 ########################################################################
 # unit classes                                                         #
 ########################################################################
@@ -1101,9 +1109,10 @@ class AdvanceAction(Action):
                         print("Weapon reloaded!")
                     elif sel == "Heal":
                         soldier.hp += 1
+                        meld -= 5
                         ap -= 20
                         print("Healed 1HP!")
-                    elif sel == "Advance":
+                    elif sel == "Skip":
                         ap = 0
                     s(.5)
                 s(.5)
@@ -1409,7 +1418,7 @@ def playerTurn():
                 actions.append(reload_advance_action)
             actions.append(end_turn_action)
         else:
-            if soldier.weapon.ammo > 0:
+            if soldier.weapon.ammo > 0 and room[roomNo] != "Drop Zone":
                 if soldier.ap >= 6: # TODO make the ap_cost a static member
                     for i in range(len(room[roomNo])):
                         alien = room[roomNo][i]
@@ -1469,7 +1478,7 @@ def displayShop(ap):
     if ap >= 30:
         if meld >= 5 and fragments >= 5:
             options.append("Meds")
-            p(len(options),"(30 Time) (10m) (5f) Get Nano Serum")
+            p(len(options),"(30 Time) (5m) (5f) Get Nano Serum")
         if alloy >= 4 and fragments >= 20:
             options.append("Frag")
             p(len(options),"(30 Time) (20f) (4a) Get Frag Grenade")
@@ -1481,8 +1490,7 @@ def displayShop(ap):
         p(len(options),"(20 Time) Reload Weapon")
     options.append("Skip")
     p(len(options),"("+str(ap)+" Time) Advance (Skip this Drop Zone)")
-    selection = get_int_input('> ', 1, len(options) - 1)
-    print('selected option ' + str(selection))
+    selection = get_int_input('> ', 1, len(options))
     return options[selection - 1]
 
 
@@ -1520,6 +1528,7 @@ def nade(alium):
         p(0, '3 damage!')
         soldier.cover = 20
         soldier.hp -= 3
+        soldier.checkDeath()
 
 def ow(alium):
     if alium.alive == True:
